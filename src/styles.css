@@ -14,3 +14,16 @@
 @keyframes window-in{from{opacity:0;transform:translateY(7px) scale(.99)}to{opacity:1;transform:translateY(0) scale(1)}}@keyframes menu-in{from{opacity:0;translate:0 8px}to{opacity:1;translate:0 0}}
 @media(max-width:720px){.weather{display:none}.taskbar{justify-content:flex-end;padding:0 8px}.taskbar-center{left:8px;transform:none}.task-icon{width:37px}.system-tray{gap:5px}.system-tray span{display:none}.desktop-icons{display:grid;grid-template-columns:repeat(2,80px);grid-template-rows:repeat(3,82px);gap:4px}.welcome{top:53%;left:48%;transform:translate(-5%,-5%)}.welcome h1{font-size:25px}.window{top:10px!important;left:8px!important;width:calc(100vw - 16px)!important;height:calc(100dvh - 80px)!important;min-width:0}.window.maximized{height:calc(100dvh - 74px)!important}.sidebar{display:none}.link-grid{grid-template-columns:1fr;max-width:310px}.project-link{min-height:95px}.page{padding:20px}.info-grid{grid-template-columns:1fr}.start-menu{padding:15px 16px 0}.start-menu footer{margin-left:-16px;margin-right:-16px;padding:10px 16px}.start-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.taskbar .system-tray time:last-child{display:none}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+/* Profile content: keep project summaries readable inside the compact desktop window. */
+.about-intro{max-width:620px;margin:14px 0;color:#526b84;font-size:12px;line-height:1.8}
+.section-heading{margin:25px 0 12px;font-size:14px;font-weight:600;letter-spacing:-.02em}
+.project-summary{margin-top:0}
+.project-summary article{position:relative;min-height:112px;padding:14px;border:1px solid var(--line);border-radius:8px;background:#ffffff80}
+.project-summary article strong{font-size:12px}
+.project-summary article p{margin:8px 0 12px;font-size:11px;line-height:1.65}
+.project-tag{display:inline-block;padding:4px 7px;border-radius:4px;background:#e5f0ff;color:#356ca7;font-size:9px;font-weight:600}
+.theme-dark .about-intro{color:#bdcadd}
+.theme-dark .project-summary article{background:#ffffff08}
+.theme-dark .project-tag{background:#203b59;color:#c7e0ff}
+@media(max-width:520px){.page{padding:20px 17px}.info-grid{grid-template-columns:1fr}.project-summary{grid-template-columns:1fr}.about-intro{font-size:11px}}
