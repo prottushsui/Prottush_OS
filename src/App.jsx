@@ -28,6 +28,9 @@ function VaultApp() {
   const [emergencyConfigured, setEmergencyConfigured] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [emergencyPassword, setEmergencyPassword] = useState('');
+  const [secondaryCurrentPassword, setSecondaryCurrentPassword] = useState('');
+  const [secondaryPassword, setSecondaryPassword] = useState('');
+  const [secondaryLabel, setSecondaryLabel] = useState('Backup password');
   const [wipePassword, setWipePassword] = useState('');
   const [showEmergencySetup, setShowEmergencySetup] = useState(false);
   const [error, setError] = useState('');
@@ -128,6 +131,16 @@ function VaultApp() {
     finally { setBusy(false); }
   };
 
+  const addSecondaryPassword = async (event) => {
+    event.preventDefault(); setBusy(true); setError(''); setNotice('');
+    try {
+      await send('add-password', { currentPassword: secondaryCurrentPassword, newPassword: secondaryPassword, label: secondaryLabel });
+      setSecondaryCurrentPassword(''); setSecondaryPassword('');
+      setNotice('Additional unlock password added. It can now unlock this same vault.');
+    } catch (err) { setError(err.message || 'Could not add another password.'); }
+    finally { setBusy(false); }
+  };
+
   const saveEmergencyPassword = async (event) => {
     event.preventDefault(); setBusy(true); setError(''); setNotice('');
     try {
@@ -172,6 +185,15 @@ function VaultApp() {
     </section>
     <div className="vault-toolbar"><div><h2>Your files</h2><p className="muted">Stored privately in Supabase cloud storage.</p></div><label className="vault-upload"><Upload size={15}/> {busy?'Working…':'Upload file'}<input type="file" onChange={uploadFile} disabled={busy}/></label></div>
     {files.length ? <div className="vault-file-list">{files.map(file=><article className="vault-file" key={file.name}><div className="vault-file-icon"><FileText size={19}/></div><div className="vault-file-info"><strong title={file.displayName}>{file.displayName}</strong><small>{formatVaultBytes(file.size)} · {file.updatedAt ? new Date(file.updatedAt).toLocaleDateString() : 'Cloud file'}</small></div><button className="vault-file-action" onClick={()=>downloadFile(file)} disabled={busy} aria-label={'Download '+file.displayName} title="Download"><Download size={16}/></button><button className="vault-file-action danger" onClick={()=>deleteFile(file)} disabled={busy} aria-label={'Delete '+file.displayName} title="Delete"><Trash2 size={16}/></button></article>)}</div> : <div className="vault-empty"><HardDrive size={30}/><strong>No files yet</strong><p>Upload a file to keep it available when you need it.</p></div>}
+    <section className="vault-security">
+      <div className="vault-security-head"><div><h2>Additional unlock password</h2><p className="muted">Add another password that opens this same vault.</p></div></div>
+      <form className="vault-emergency-form" onSubmit={addSecondaryPassword}>
+        <input type="text" autoComplete="off" value={secondaryLabel} onChange={e=>setSecondaryLabel(e.target.value)} placeholder="Password label" aria-label="Password label" maxLength={40} required/>
+        <input type="password" autoComplete="current-password" value={secondaryCurrentPassword} onChange={e=>setSecondaryCurrentPassword(e.target.value)} placeholder="Current vault password" required/>
+        <input type="password" autoComplete="new-password" value={secondaryPassword} onChange={e=>setSecondaryPassword(e.target.value)} placeholder="New password (12+ characters)" required minLength={12}/>
+        <button className="vault-secondary" type="submit" disabled={busy}>Add unlock password</button>
+      </form>
+    </section>
     <section className="vault-security">
       <div className="vault-security-head"><div><h2>Emergency wipe</h2><p className="muted">{emergencyConfigured?'Separate emergency password configured.':'Set a separate password before relying on emergency wipe.'}</p></div><span className={'vault-status '+(emergencyConfigured?'ready':'pending')}>{emergencyConfigured?'Configured':'Setup needed'}</span></div>
       {!emergencyConfigured || showEmergencySetup ? <form className="vault-emergency-form" onSubmit={saveEmergencyPassword}>
