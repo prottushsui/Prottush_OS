@@ -8,7 +8,8 @@ export const apps = [
   { id: 'resume', title: 'CV & records', icon: FileText, subtitle: 'Public documents', group: 'Personal' },
   { id: 'contact', title: 'Contact', icon: Mail, subtitle: 'Get in touch', group: 'Personal' },
   { id: 'terminal', title: 'Terminal', icon: Terminal, subtitle: 'A tiny command prompt', group: 'System' },
-  { id: 'settings', title: 'Settings', icon: Settings, subtitle: 'Appearance', group: 'System' },\n  { id: 'vault', title: 'Secret Space', icon: ShieldCheck, subtitle: 'Private cloud file vault', group: 'Personal' },
+  { id: 'settings', title: 'Settings', icon: Settings, subtitle: 'Appearance', group: 'System' },
+  { id: 'vault', title: 'Secret Space', icon: ShieldCheck, subtitle: 'Private cloud file vault', group: 'Personal' },
 ];
 
 // Replace or extend these links with the final, verified project destinations.
