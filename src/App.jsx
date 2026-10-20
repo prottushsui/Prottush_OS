@@ -242,7 +242,20 @@ export default function App() {
   const [activeId,setActiveId] = useState(null);
   const [startOpen,setStartOpen] = useState(false);
   const [search,setSearch] = useState('');
-  const [theme,setTheme] = useState('light');
+  // Keep appearance preferences across reloads without making storage mandatory.
+  const [theme,setTheme] = useState(() => {
+    try { return localStorage.getItem('prottush-os-theme') === 'dark' ? 'dark' : 'light'; }
+    catch { return 'light'; }
+  });
+  const [clock,setClock] = useState(() => new Date());
+  useEffect(() => {
+    try { localStorage.setItem('prottush-os-theme', theme); } catch { /* Storage may be unavailable in private contexts. */ }
+  }, [theme]);
+  // A live clock refreshes independently of other desktop interactions.
+  useEffect(() => {
+    const timer = window.setInterval(() => setClock(new Date()), 30000);
+    return () => window.clearInterval(timer);
+  }, []);
   const [z,setZ] = useState(10);
   const openApp = (id) => {
     const nextZ=z+1; setZ(nextZ);
@@ -263,6 +276,6 @@ export default function App() {
     <div className="welcome"><span>PERSONAL DESKTOP</span><h1>Good to see you.</h1><p>Double-click an icon to explore.</p></div>
     {visible.map(([id,state])=>{const app=apps.find(a=>a.id===id);return <WindowFrame key={id} app={app} state={state} active={activeId===id} onFocus={()=>focusApp(id)} onClose={()=>closeApp(id)} onMinimize={()=>minimizeApp(id)} onMaximize={()=>toggleMaximize(id)} onMove={pos=>moveWindow(id,pos)}><AppContent id={id} openApp={openApp} theme={theme} setTheme={setTheme}/></WindowFrame>})}
     {startOpen&&<><button className="dismiss" aria-label="Dismiss Start menu" onClick={()=>setStartOpen(false)}/><section className="start-menu"><label className="start-search"><Search size={16}/><input autoFocus value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search for apps, settings, and documents"/></label><div className="start-heading"><b>{search?'Search results':'Pinned'}</b><span>All apps　›</span></div><div className="start-grid">{filtered.map(a=>{const Icon=a.icon;return <button key={a.id} onClick={()=>openApp(a.id)}><span className={'icon-tile icon-'+a.id}><Icon size={22}/></span><small>{a.title}</small></button>})}</div><footer><span className="profile-mini">P.</span><b>Prottush</b><button aria-label="Power menu" onClick={()=>setStartOpen(false)}><Power size={16}/></button></footer></section></>}
-    <footer className="taskbar"><div className="weather"><span>☀</span><div><b>Clear skies</b><small>Make today count</small></div></div><div className="taskbar-center"><button className="task-icon windows-logo" aria-label="Start" onClick={()=>setStartOpen(v=>!v)}><span>▦</span></button>{[...new Set([...Object.keys(windows)])].map(id=>{const a=apps.find(app=>app.id===id);const Icon=a.icon;return <button key={id} className={'task-icon '+(activeId===id?'task-active':'')} title={a.title} onClick={()=>windows[id].minimized?openApp(id):activeId===id?minimizeApp(id):focusApp(id)}><Icon size={19}/></button>})}<button className="task-icon" title="Search" onClick={()=>setStartOpen(true)}><Search size={18}/></button></div><div className="system-tray"><span>⌃</span><span>◖</span><span>◕</span><time>{new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</time><time>{new Date().toLocaleDateString([], {month:'numeric',day:'numeric',year:'numeric'})}</time></div></footer>
+    <footer className="taskbar"><div className="weather"><span>☀</span><div><b>Clear skies</b><small>Make today count</small></div></div><div className="taskbar-center"><button className="task-icon windows-logo" aria-label="Start" onClick={()=>setStartOpen(v=>!v)}><span>▦</span></button>{[...new Set([...Object.keys(windows)])].map(id=>{const a=apps.find(app=>app.id===id);const Icon=a.icon;return <button key={id} className={'task-icon '+(activeId===id?'task-active':'')} title={a.title} onClick={()=>windows[id].minimized?openApp(id):activeId===id?minimizeApp(id):focusApp(id)}><Icon size={19}/></button>})}<button className="task-icon" title="Search" onClick={()=>setStartOpen(true)}><Search size={18}/></button></div><div className="system-tray"><span>⌃</span><span>◖</span><span>◕</span><time>{clock.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</time><time>{clock.toLocaleDateString([], {month:'numeric',day:'numeric',year:'numeric'})}</time></div></footer>
   </main>;
 }
