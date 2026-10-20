@@ -216,7 +216,7 @@ function AppContent({ id, openApp, theme, setTheme }) {
   if (id === 'resume') return <section className="page"><div className="doc-head"><FileText size={34}/><div><p className="eyebrow">DOCUMENTS</p><h1>CV & records</h1><p className="muted">Public-safe documents will appear here.</p></div></div>{[{title:'Curriculum Vitae',desc:'Add your latest CV to public/documents and link it here.'},{title:'School records',desc:'Only include documents you intend to make public.'},{title:'Certificates & recognition',desc:'A curated list of achievements and certificates.'}].map(d=><div className="file-row" key={d.title}><FileText/><div><b>{d.title}</b><small>{d.desc}</small></div><span className="file-type">FILE</span></div>)}<p className="callout">No private student records should be published. Add only files you explicitly want visitors to access.</p></section>;
   if (id === 'contact') return <section className="page"><div className="contact-mark"><Mail/></div><p className="eyebrow">LET’S CONNECT</p><h1>Get in touch.</h1><p className="muted">For collaborations, projects, or a thoughtful conversation.</p><a className="contact-row" href="https://github.com/prottushsui" target="_blank" rel="noreferrer"><Globe/><span><b>GitHub</b><small>github.com/prottushsui</small></span><ChevronRight/></a><p className="callout">Add a public contact email or preferred social link when you are ready.</p></section>;
   if (id === 'terminal') return <section className="terminal"><div><i/> <i/> <i/> <span>PowerShell</span></div><p>Windows PowerShell</p><p>Copyright (C) Microsoft Corporation. All rights reserved.</p><br/><p>PS C:\Users\Prottush&gt; <span className="terminal-caret">_</span></p><p className="terminal-muted">This is a visual portfolio terminal, not a real shell.</p></section>;
-  if (id === 'settings') return <section className="page"><div className="doc-head"><Monitor size={34}/><div><p className="eyebrow">SYSTEM</p><h1>Personalization</h1><p className="muted">Choose your desktop appearance.</p></div></div><div className="theme-row"><button className={theme==='light'?'theme-choice selected':'theme-choice'} onClick={()=>setTheme('light')}><Sun/>Light</button><button className={theme==='dark'?'theme-choice selected':'theme-choice'} onClick={()=>setTheme('dark')}><Moon/>Dark</button></div><p className="callout">Settings are currently session-only; persistent preferences can be added later.</p></section>;
+  if (id === 'settings') return <section className="page"><div className="doc-head"><Monitor size={34}/><div><p className="eyebrow">SYSTEM</p><h1>Personalization</h1><p className="muted">Choose your desktop appearance.</p></div></div><div className="theme-row"><button className={theme==='light'?'theme-choice selected':'theme-choice'} onClick={()=>setTheme('light')}><Sun/>Light</button><button className={theme==='dark'?'theme-choice selected':'theme-choice'} onClick={()=>setTheme('dark')}><Moon/>Dark</button></div><p className="callout">Your appearance preference is saved in this browser and will be remembered on your next visit.</p></section>;
   return null;
 }
 
@@ -232,7 +232,7 @@ function WindowFrame({ app, state, active, onFocus, onClose, onMinimize, onMaxim
     window.addEventListener('pointerup', up);
   };
   return <section className={'window '+(active?'active ':'')+(state.maximized?'maximized':'')} style={{left:state.maximized?12:state.position.x,top:state.maximized?12:state.position.y,zIndex:state.zIndex}} onPointerDown={onFocus}>
-    <header className="titlebar" onPointerDown={drag}><span className="title-icon"><Icon size={15}/></span><span>{app.title}</span><div className="window-controls"><button aria-label="Minimize" onClick={onMinimize}><Minus size={14}/></button><button aria-label="Maximize" onClick={onMaximize}><Square size={11}/></button><button className="close" aria-label="Close" onClick={onClose}><X size={15}/></button></div></header>
+    <header className="titlebar" onPointerDown={drag} onDoubleClick={event => { if (!event.target.closest("button")) onMaximize(); }}><span className="title-icon"><Icon size={15}/></span><span>{app.title}</span><div className="window-controls"><button aria-label="Minimize" onClick={onMinimize}><Minus size={14}/></button><button aria-label="Maximize" onClick={onMaximize}><Square size={11}/></button><button className="close" aria-label="Close" onClick={onClose}><X size={15}/></button></div></header>
     <div className="window-content">{children}</div>
   </section>;
 }
@@ -269,7 +269,31 @@ export default function App() {
   const moveWindow = (id,position) => setWindows(current=>({...current,[id]:{...current[id],position}}));
   const visible = useMemo(()=>Object.entries(windows).filter(([,w])=>!w.minimized),[windows]);
   const filtered = apps.filter(a=>a.title.toLowerCase().includes(search.toLowerCase()));
-  useEffect(()=>{const key=e=>{if(e.key==='Escape'){setStartOpen(false);if(activeId)closeApp(activeId);}};window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);},[activeId]);
+  useEffect(() => {
+    const key = (event) => {
+      const shortcut = event.altKey && event.shiftKey && !event.ctrlKey && !event.metaKey;
+      if (shortcut && !event.repeat) {
+        const shortcuts = { s: 'start', e: 'explorer', b: 'browser', t: 'terminal' };
+        const target = shortcuts[event.key.toLowerCase()];
+        if (target) {
+          event.preventDefault();
+          if (target === 'start') setStartOpen(value => !value);
+          else openApp(target);
+          return;
+        }
+      }
+      if (event.key === 'Escape') {
+        if (startOpen) setStartOpen(false);
+        else if (activeId) closeApp(activeId);
+      }
+      if (event.altKey && event.key === 'F4' && activeId) {
+        event.preventDefault();
+        closeApp(activeId);
+      }
+    };
+    window.addEventListener('keydown', key);
+    return () => window.removeEventListener('keydown', key);
+  }, [activeId, startOpen, z]);
   return <main className={'desktop theme-'+theme} onPointerDown={e=>{if(e.target===e.currentTarget)setStartOpen(false);}}>
     <div className="wallpaper-shape shape-one"/><div className="wallpaper-shape shape-two"/>
     <div className="desktop-icons">{apps.filter(a=>['about','explorer','browser','resume','contact','vault'].includes(a.id)).map(a=>{const Icon=a.icon;return <button className="desktop-icon" key={a.id} onDoubleClick={()=>openApp(a.id)}><span className={'icon-tile icon-'+a.id}><Icon size={25}/></span><span>{a.title}</span></button>})}</div>
