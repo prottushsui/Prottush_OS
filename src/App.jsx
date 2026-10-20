@@ -220,19 +220,31 @@ function AppContent({ id, openApp, theme, setTheme }) {
   return null;
 }
 
-function WindowFrame({ app, state, active, onFocus, onClose, onMinimize, onMaximize, onMove, children }) {
+function WindowFrame({ app, state, active, onFocus, onClose, onMinimize, onMaximize, onMove, onDragStart, onSnap, children }) {
   const Icon = app.icon;
   const drag = (event) => {
-    if (event.target.closest('button')) return;
+    if (event.target.closest('button') || event.button !== 0) return;
     onFocus();
-    const origin = { x: event.clientX, y: event.clientY, wx: state.position.x, wy: state.position.y };
-    const move = (e) => onMove({ x: Math.max(0, origin.wx + e.clientX - origin.x), y: Math.max(0, origin.wy + e.clientY - origin.y) });
-    const up = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); };
+    const rect = event.currentTarget.closest('.window').getBoundingClientRect();
+    const origin = { x: event.clientX, y: event.clientY, wx: rect.left, wy: rect.top };
+    onDragStart();
+    const move = (e) => onMove({
+      x: Math.max(0, Math.min(window.innerWidth - 300, origin.wx + e.clientX - origin.x)),
+      y: Math.max(0, Math.min(window.innerHeight - 110, origin.wy + e.clientY - origin.y))
+    });
+    const up = (e) => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      if (window.innerWidth >= 720 && e.clientX <= 12) onSnap('left');
+      else if (window.innerWidth >= 720 && e.clientX >= window.innerWidth - 12) onSnap('right');
+      else if (e.clientY <= 8) onMaximize();
+    };
     window.addEventListener('pointermove', move);
     window.addEventListener('pointerup', up);
   };
-  return <section className={'window '+(active?'active ':'')+(state.maximized?'maximized':'')} style={{left:state.maximized?12:state.position.x,top:state.maximized?12:state.position.y,zIndex:state.zIndex}} onPointerDown={onFocus}>
-    <header className="titlebar" onPointerDown={drag} onDoubleClick={event => { if (!event.target.closest("button")) onMaximize(); }}><span className="title-icon"><Icon size={15}/></span><span>{app.title}</span><div className="window-controls"><button aria-label="Minimize" onClick={onMinimize}><Minus size={14}/></button><button aria-label="Maximize" onClick={onMaximize}><Square size={11}/></button><button className="close" aria-label="Close" onClick={onClose}><X size={15}/></button></div></header>
+  const windowClass = 'window '+(active?'active ':'')+(state.maximized?'maximized ':'')+(state.snap ? 'snapped-'+state.snap : '');
+  return <section className={windowClass} style={{left:state.maximized?12:state.position.x,top:state.maximized?12:state.position.y,zIndex:state.zIndex}} onPointerDown={onFocus}>
+    <header className="titlebar" onPointerDown={drag} onDoubleClick={event => { if (!event.target.closest("button")) onMaximize(); }}><span className="title-icon"><Icon size={15}/></span><span>{app.title}</span><div className="window-controls"><button aria-label="Minimize" onClick={onMinimize}><Minus size={14}/></button><button aria-label={state.maximized?'Restore':'Maximize'} onClick={onMaximize}><Square size={11}/></button><button className="close" aria-label="Close" onClick={onClose}><X size={15}/></button></div></header>
     <div className="window-content">{children}</div>
   </section>;
 }
@@ -265,8 +277,10 @@ export default function App() {
   const focusApp = (id) => { const nextZ=z+1; setZ(nextZ); setWindows(current=>({...current,[id]:{...current[id],minimized:false,zIndex:nextZ}})); setActiveId(id); };
   const closeApp = (id) => { setWindows(current=>{const copy={...current};delete copy[id];return copy;});setActiveId(current=>current===id?null:current); };
   const minimizeApp = (id) => { setWindows(current=>({...current,[id]:{...current[id],minimized:true}}));setActiveId(current=>current===id?null:current); };
-  const toggleMaximize = (id) => setWindows(current=>({...current,[id]:{...current[id],maximized:!current[id].maximized}}));
+  const toggleMaximize = (id) => setWindows(current=>({...current,[id]:{...current[id],maximized:!current[id].maximized,snap:null}}));
   const moveWindow = (id,position) => setWindows(current=>({...current,[id]:{...current[id],position}}));
+  const startWindowDrag = (id) => setWindows(current=>({...current,[id]:{...current[id],maximized:false,snap:null}}));
+  const snapWindow = (id,side) => setWindows(current=>({...current,[id]:{...current[id],maximized:false,snap:side}}));
   const visible = useMemo(()=>Object.entries(windows).filter(([,w])=>!w.minimized),[windows]);
   const filtered = apps.filter(a=>a.title.toLowerCase().includes(search.toLowerCase()));
   useEffect(() => {
@@ -298,7 +312,7 @@ export default function App() {
     <div className="wallpaper-shape shape-one"/><div className="wallpaper-shape shape-two"/>
     <div className="desktop-icons">{apps.filter(a=>['about','explorer','browser','resume','contact','vault'].includes(a.id)).map(a=>{const Icon=a.icon;return <button className="desktop-icon" key={a.id} onDoubleClick={()=>openApp(a.id)}><span className={'icon-tile icon-'+a.id}><Icon size={25}/></span><span>{a.title}</span></button>})}</div>
     <div className="welcome"><span>PERSONAL DESKTOP</span><h1>Good to see you.</h1><p>Double-click an icon to explore.</p></div>
-    {visible.map(([id,state])=>{const app=apps.find(a=>a.id===id);return <WindowFrame key={id} app={app} state={state} active={activeId===id} onFocus={()=>focusApp(id)} onClose={()=>closeApp(id)} onMinimize={()=>minimizeApp(id)} onMaximize={()=>toggleMaximize(id)} onMove={pos=>moveWindow(id,pos)}><AppContent id={id} openApp={openApp} theme={theme} setTheme={setTheme}/></WindowFrame>})}
+    {visible.map(([id,state])=>{const app=apps.find(a=>a.id===id);return <WindowFrame key={id} app={app} state={state} active={activeId===id} onFocus={()=>focusApp(id)} onClose={()=>closeApp(id)} onMinimize={()=>minimizeApp(id)} onMaximize={()=>toggleMaximize(id)} onMove={pos=>moveWindow(id,pos)} onDragStart={()=>startWindowDrag(id)} onSnap={side=>snapWindow(id,side)}><AppContent id={id} openApp={openApp} theme={theme} setTheme={setTheme}/></WindowFrame>})}
     {startOpen&&<><button className="dismiss" aria-label="Dismiss Start menu" onClick={()=>setStartOpen(false)}/><section className="start-menu"><label className="start-search"><Search size={16}/><input autoFocus value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search for apps, settings, and documents"/></label><div className="start-heading"><b>{search?'Search results':'Pinned'}</b><span>All apps　›</span></div><div className="start-grid">{filtered.map(a=>{const Icon=a.icon;return <button key={a.id} onClick={()=>openApp(a.id)}><span className={'icon-tile icon-'+a.id}><Icon size={22}/></span><small>{a.title}</small></button>})}</div><footer><span className="profile-mini">P.</span><b>Prottush</b><button aria-label="Power menu" onClick={()=>setStartOpen(false)}><Power size={16}/></button></footer></section></>}
     <footer className="taskbar"><div className="weather"><span>☀</span><div><b>Clear skies</b><small>Make today count</small></div></div><div className="taskbar-center"><button className="task-icon windows-logo" aria-label="Start" onClick={()=>setStartOpen(v=>!v)}><span>▦</span></button>{[...new Set([...Object.keys(windows)])].map(id=>{const a=apps.find(app=>app.id===id);const Icon=a.icon;return <button key={id} className={'task-icon '+(activeId===id?'task-active':'')} title={a.title} onClick={()=>windows[id].minimized?openApp(id):activeId===id?minimizeApp(id):focusApp(id)}><Icon size={19}/></button>})}<button className="task-icon" title="Search" onClick={()=>setStartOpen(true)}><Search size={18}/></button></div><div className="system-tray"><span>⌃</span><span>◖</span><span>◕</span><time>{clock.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</time><time>{clock.toLocaleDateString([], {month:'numeric',day:'numeric',year:'numeric'})}</time></div></footer>
   </main>;
