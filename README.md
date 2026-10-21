@@ -30,7 +30,7 @@ src/
 - Comment non-obvious state and event handling; avoid comments that merely restate syntax.
 - Keep keyboard access, visible focus states, and reduced-motion support.
 - Never publish private school, identity, or health records. Add only public-safe documents.
-- The terminal is a visual mock-up and does not execute commands.
+- The terminal is a simulated command prompt with a small allowlist (`help`, `date`, `apps`, `whoami`, `theme`, `open <app>`, and `clear`); it does not execute shell or operating-system commands.
 - Theme, wallpaper, and accent preferences persist locally in this browser; they can be exported/imported using a validated, versioned JSON file.
 
 ## Quality checks
