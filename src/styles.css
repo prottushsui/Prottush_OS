@@ -213,3 +213,5 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .error-boundary button{min-height:40px;padding:9px 15px;border:0;border-radius:7px;background:#176bd2;color:#fff;font-weight:600;cursor:pointer}
 @media(max-width:520px){.settings-transfer{display:grid;grid-template-columns:1fr}.settings-transfer-button{width:100%}.page{padding:22px 18px}.settings-page .doc-head{align-items:flex-start}.error-boundary section{padding:22px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+.help-list{padding-left:20px;color:var(--muted);line-height:1.8}.help-list li{padding:3px 0}.help-page kbd{display:inline-block;padding:2px 5px;border:1px solid var(--line);border-radius:4px;background:rgba(255,255,255,.65);font-size:10px;color:inherit}
