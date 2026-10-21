@@ -95,3 +95,34 @@ This roadmap is intentionally incremental: protect the working production build,
 - [x] Add a Show desktop control that minimizes visible windows and restores the same set on the next activation.
 - [x] Keep window restoration in transient React state; no new persisted window content or vault data.
 - [ ] Manually verify multi-window focus, minimize/restore, Show desktop toggle, and narrow-screen taskbar behavior.
+
+
+## Upgrade 13 — Quick settings
+- [x] Add client-side quick controls for dark theme, focus mode, reduced motion, and Settings.
+- [x] Keep preferences and behavior local; no new services or infrastructure.
+
+## Upgrade 14 — Session notification center
+- [x] Surface desktop actions and preference changes as in-session notifications.
+- [x] Add notification count, clear-all, and a useful empty state; notifications are not synced or persisted.
+
+## Upgrade 15 — Calendar and clock panel
+- [x] Add a responsive local date/time panel with a month grid and current-day highlight.
+- [x] Clearly indicate that no calendar account is connected.
+
+## Upgrade 16 — Keyboard shortcut guide
+- [x] Add a '?' keyboard shortcut to open the built-in shortcut reference.
+- [x] Respect editable fields and Escape to dismiss panels.
+
+## Upgrade 17 — Focus mode
+- [x] Add a quick toggle that visually deemphasizes desktop decoration without hiding or closing app windows.
+
+## Upgrade 18 — Reduced-motion preference
+- [x] Add a session-level reduced-motion switch that disables animation and transitions.
+
+## Upgrade 19 — Responsive system tray
+- [x] Replace decorative tray glyphs with working quick-settings, notification, and calendar controls.
+- [x] Adjust tray controls and system panels for narrow viewports.
+
+## Upgrade 20 — Local-first system utility layer
+- [x] Keep all new utility state in the current browser session; no account connections or backend changes.
+- [ ] Manually test all panels, keyboard dismissal, focus behavior, and mobile layouts after deployment.
