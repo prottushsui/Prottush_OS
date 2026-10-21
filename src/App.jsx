@@ -17,8 +17,8 @@ function readSavedWindows() {
       const rawZ = Number(state.zIndex);
       return [[id, {
         position: { x, y },
-        width: Number.isFinite(Number(state.width)) ? Math.max(300, Math.min(window.innerWidth - x, Number(state.width))) : null,
-        height: Number.isFinite(Number(state.height)) ? Math.max(230, Math.min(window.innerHeight - y - 70, Number(state.height))) : null,
+        width: state.width != null && Number.isFinite(Number(state.width)) ? Math.max(300, Math.min(window.innerWidth - x, Number(state.width))) : null,
+        height: state.height != null && Number.isFinite(Number(state.height)) ? Math.max(230, Math.min(window.innerHeight - y - 70, Number(state.height))) : null,
         maximized: Boolean(state.maximized),
         minimized: Boolean(state.minimized),
         zIndex: Number.isFinite(rawZ) ? Math.max(1, Math.min(10000, rawZ)) : 10,
