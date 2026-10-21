@@ -558,7 +558,7 @@ export default function App() {
     event.preventDefault();
     event.stopPropagation();
     const menuWidth = 228;
-    const menuHeight = targetId ? 174 : 250;
+    const menuHeight = targetId ? 174 : 292;
     const bounds = event.currentTarget?.getBoundingClientRect?.();
     const pointerX = Number.isFinite(event.clientX) && event.clientX > 0 ? event.clientX : (bounds ? bounds.left + Math.min(bounds.width / 2, 90) : 16);
     const pointerY = Number.isFinite(event.clientY) && event.clientY > 0 ? event.clientY : (bounds ? bounds.top + Math.min(bounds.height / 2, 40) : 16);
@@ -569,6 +569,16 @@ export default function App() {
     });
     setShortcutPickerOpen(false);
     setStartOpen(false);
+  };
+  const resetWindowLayout = () => {
+    closeContextMenu();
+    if (!window.confirm('Reset the desktop window layout? All open app windows will close. Your appearance settings, desktop shortcuts, and Secret Space data will not be changed.')) return;
+    setWindows({});
+    setActiveId(null);
+    setDesktopRestoreIds(null);
+    try { localStorage.removeItem(LAYOUT_STORAGE_KEY); } catch { /* storage can be unavailable in private browsing */ }
+    setDesktopNotice('Window layout reset');
+    notify('Window layout reset', 'Open windows were closed. Appearance and shortcut preferences were preserved.');
   };
   const refreshDesktop = () => {
     setSelectedDesktopIcon(null);
@@ -720,6 +730,7 @@ export default function App() {
         <button role="menuitem" onClick={()=>{setShortcutPickerOpen(value=>!value);}}><Plus size={15}/> New shortcut <ChevronRight size={14}/></button>
         {shortcutPickerOpen&&<div className="shortcut-picker" role="group" aria-label="Choose an app shortcut">{apps.filter(item=>item.id!=='vault'&&!['about','explorer','browser','resume','contact'].includes(item.id)&&!shortcutIds.includes(item.id)).map(item=><button key={item.id} onClick={()=>toggleDesktopShortcut(item.id)}><span className={'icon-tile icon-'+item.id}><item.icon size={16}/></span><span>{item.title}</span><Plus size={13}/></button>)}{apps.filter(item=>item.id!=='vault'&&!['about','explorer','browser','resume','contact'].includes(item.id)&&!shortcutIds.includes(item.id)).length===0&&<p>All available shortcuts are already on the desktop.</p>}</div>}
         <button role="menuitem" onClick={()=>{closeContextMenu();openApp('settings');}}><Monitor size={15}/> Personalize <span> </span></button>
+        <button role="menuitem" onClick={resetWindowLayout}><RefreshCw size={15}/> Reset window layout</button>
       </>}
     </section></>}
     {desktopNotice&&<div className="desktop-notice" role="status">{desktopNotice}</div>}
