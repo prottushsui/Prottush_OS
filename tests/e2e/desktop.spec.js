@@ -1,0 +1,71 @@
+import { test, expect } from '@playwright/test';
+
+async function openStart(page) {
+  await page.getByRole('button', { name: 'Start menu' }).click();
+  await expect(page.getByRole('dialog', { name: 'Start menu' })).toBeVisible();
+}
+
+async function launchFromStart(page, appName) {
+  await openStart(page);
+  const search = page.getByRole('textbox', { name: 'Search apps by name, description, or category' });
+  await search.fill(appName);
+  await page.getByRole('option', { name: new RegExp(appName, 'i') }).first().click();
+}
+
+test.beforeEach(async ({ page }) => {
+  await page.setViewportSize({ width: 1365, height: 900 });
+  await page.goto('/');
+});
+
+test('loads a named desktop and opens/dismisses Start with keyboard', async ({ page }) => {
+  await expect(page.locator('main.desktop')).toBeVisible();
+  await openStart(page);
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog', { name: 'Start menu' })).toHaveCount(0);
+});
+
+test('Start search launches Settings and preference controls are reachable', async ({ page }) => {
+  await launchFromStart(page, 'Settings');
+  await expect(page.getByRole('heading', { name: 'Personalization' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Backup appearance settings' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Export settings/ })).toBeVisible();
+  await expect(page.getByLabel('Import settings')).toBeAttached();
+});
+
+test('Terminal only runs the documented allowlisted commands', async ({ page }) => {
+  await launchFromStart(page, 'Terminal');
+  const input = page.getByRole('textbox', { name: 'Simulated terminal command' });
+  await input.fill('help');
+  await page.getByRole('button', { name: 'Run' }).click();
+  await expect(page.getByText(/Supported commands: help, date, apps/)).toBeVisible();
+  await input.fill('rm -rf /');
+  await page.getByRole('button', { name: 'Run' }).click();
+  await expect(page.getByText(/Unknown simulated command: rm/)).toBeVisible();
+});
+
+test('quick settings open, expose toggle state, and dismiss', async ({ page }) => {
+  const quick = page.getByRole('button', { name: 'Open quick settings' });
+  await quick.click();
+  await expect(page.getByRole('dialog', { name: 'Quick settings' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Dark theme/ })).toHaveAttribute('aria-pressed');
+  await page.getByRole('button', { name: 'Close quick settings' }).click();
+  await expect(page.getByRole('dialog', { name: 'Quick settings' })).toHaveCount(0);
+});
+
+test('core controls remain within a narrow viewport', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await expect(page.locator('main.desktop')).toBeVisible();
+  await openStart(page);
+  await expect(page.getByRole('textbox', { name: 'Search apps by name, description, or category' })).toBeVisible();
+  const startBounds = await page.getByRole('dialog', { name: 'Start menu' }).boundingBox();
+  expect(startBounds).not.toBeNull();
+  expect(startBounds.x).toBeGreaterThanOrEqual(0);
+  expect(startBounds.x + startBounds.width).toBeLessThanOrEqual(376);
+});
+
+test('Help & tips accurately describes privacy boundaries', async ({ page }) => {
+  await launchFromStart(page, 'Help & tips');
+  await expect(page.getByRole('heading', { name: 'Help & tips' })).toBeVisible();
+  await expect(page.getByText(/does not execute operating-system commands/i)).toBeVisible();
+  await expect(page.getByText(/only theme, wallpaper, and accent/i)).toBeVisible();
+});
