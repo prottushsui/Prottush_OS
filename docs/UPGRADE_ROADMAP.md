@@ -87,3 +87,11 @@ This roadmap is intentionally incremental: protect the working production build,
 - [x] Add quick access to Personalization from the desktop menu.
 - [x] Keep Secret Space excluded from the new-shortcut picker and do not persist any vault state.
 - [ ] Manually verify pointer, keyboard context-menu, and narrow-screen behavior after deployment.
+
+
+## Upgrade 12 — Window management polish
+
+- [x] Add explicit taskbar indicators for active, open, and minimized windows.
+- [x] Add a Show desktop control that minimizes visible windows and restores the same set on the next activation.
+- [x] Keep window restoration in transient React state; no new persisted window content or vault data.
+- [ ] Manually verify multi-window focus, minimize/restore, Show desktop toggle, and narrow-screen taskbar behavior.
