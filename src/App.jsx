@@ -367,26 +367,22 @@ export default function App() {
     setActiveId(id); setStartOpen(false); setSearch('');
   };
   const focusApp = (id) => { const nextZ=z+1; setZ(nextZ); setWindows(current=>({...current,[id]:{...current[id],minimized:false,zIndex:nextZ}})); setActiveId(id); };
-  const selectTopWindow = (candidates, excludedId) => {
+  const selectTopWindow = (candidates) => {
     const next = Object.entries(candidates)
-      .filter(([id, state]) => id !== excludedId && !state.minimized)
+      .filter(([, state]) => !state.minimized)
       .sort((a, b) => (b[1].zIndex || 0) - (a[1].zIndex || 0))[0];
     setActiveId(next?.[0] ?? null);
   };
   const closeApp = (id) => {
-    setWindows(current => {
-      const copy = { ...current };
-      delete copy[id];
-      if (activeId === id) selectTopWindow(copy, id);
-      return copy;
-    });
+    const copy = { ...windows };
+    delete copy[id];
+    setWindows(copy);
+    if (activeId === id) selectTopWindow(copy);
   };
   const minimizeApp = (id) => {
-    setWindows(current => {
-      const copy = { ...current, [id]: { ...current[id], minimized: true } };
-      if (activeId === id) selectTopWindow(copy, id);
-      return copy;
-    });
+    const copy = { ...windows, [id]: { ...windows[id], minimized: true } };
+    setWindows(copy);
+    if (activeId === id) selectTopWindow(copy);
   };
   const toggleMaximize = (id) => setWindows(current => ({
     ...current,
