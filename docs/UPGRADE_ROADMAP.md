@@ -126,3 +126,65 @@ This roadmap is intentionally incremental: protect the working production build,
 ## Upgrade 20 — Local-first system utility layer
 - [x] Keep all new utility state in the current browser session; no account connections or backend changes.
 - [ ] Manually test all panels, keyboard dismissal, focus behavior, and mobile layouts after deployment.
+
+
+## Forward plan — Upgrades 21–50
+
+This is a planning backlog, not a claim that these features already exist. Ship one focused upgrade at a time (or a small, tightly related batch), inspect the current code before implementation, and adjust scope when a feature is already present or would require risky architecture changes. Prioritize correctness and testability over adding decorative UI.
+
+### Phase 6 — Quality gates and diagnostics (21–25)
+
+- [ ] **Upgrade 21 — Baseline build and test gate:** document the package manager and existing scripts; make the production build and available lint/type checks repeatable before merges.
+- [ ] **Upgrade 22 — Core interaction smoke tests:** cover app launch, close, minimize/restore, Start/search, Settings, and taskbar state with the test tooling the repository already supports.
+- [ ] **Upgrade 23 — Keyboard regression suite:** verify shortcut handling, editable-field protection, Escape dismissal, focus handoff, and keyboard-only access.
+- [ ] **Upgrade 24 — Responsive viewport checks:** add a practical viewport matrix for desktop, tablet, and narrow mobile; catch overflow and unreachable controls.
+- [ ] **Upgrade 25 — Runtime diagnostics checklist:** document how to inspect browser-console errors, failed requests, and Vercel build/runtime logs; fix observed issues rather than adding a pretend diagnostics screen.
+
+### Phase 7 — Desktop usability (26–30)
+
+- [ ] **Upgrade 26 — Window snapping and tiling polish:** inspect existing behavior first; improve half-screen placement, viewport bounds, and small-screen fallback without regressing resizing.
+- [ ] **Upgrade 27 — Taskbar overflow and app grouping:** keep open apps reachable at narrow widths and make active/minimized states understandable.
+- [ ] **Upgrade 28 — Desktop layout recovery:** provide a safe reset-to-default layout action with confirmation; preserve unrelated app data and theme preferences.
+- [ ] **Upgrade 29 — Search quality pass:** improve empty states, result ranking, keyboard selection, and clear-query behavior without inventing results.
+- [ ] **Upgrade 30 — Consistent loading, empty, and error states:** standardize feedback across apps, including honest messages when a feature is a mock or a service is unavailable.
+
+### Phase 8 — Accessibility and interaction consistency (31–35)
+
+- [ ] **Upgrade 31 — Accessibility audit:** check semantic structure, names, roles, states, focus order, contrast, zoom, and reduced motion against WCAG 2.2 AA criteria where applicable.
+- [ ] **Upgrade 32 — Modal and popover focus management:** add reliable focus entry, Escape handling, and focus restoration for Start, system panels, and dialogs.
+- [ ] **Upgrade 33 — Pointer and touch parity:** ensure essential actions do not depend on hover or right-click; provide touch-friendly targets and visible alternatives.
+- [ ] **Upgrade 34 — Text scaling and zoom resilience:** verify long labels, browser zoom, and larger text do not clip core controls.
+- [ ] **Upgrade 35 — Accessible notification behavior:** ensure notifications are announced appropriately, dismissible, non-obstructive, and not the sole way to convey important state.
+
+### Phase 9 — Portfolio and content quality (36–40)
+
+- [ ] **Upgrade 36 — Project browser refresh:** use a single curated source of truth for project title, description, status, links, and technology labels; verify every destination.
+- [ ] **Upgrade 37 — About and contact polish:** clarify the portfolio owner's work and contact paths while avoiding publication of private details.
+- [ ] **Upgrade 38 — Achievements and public documents review:** verify accuracy, links, dates, and publication permissions; keep empty/private records unpublished.
+- [ ] **Upgrade 39 — App content consistency:** give each app a clear purpose, useful content, and honest boundaries; label simulated OS functionality as simulated.
+- [ ] **Upgrade 40 — Metadata and sharing previews:** audit page title, description, favicon, Open Graph metadata, and social preview without exposing private content.
+
+### Phase 10 — Reliability, privacy, and release operations (41–45)
+
+- [ ] **Upgrade 41 — Error boundaries and recovery:** contain UI failures where supported and provide a safe retry/reload path without hiding errors from developers.
+- [ ] **Upgrade 42 — Storage resilience:** validate browser-local preferences, handle malformed or unavailable storage safely, and provide reset behavior; never store secrets or private file contents there.
+- [ ] **Upgrade 43 — Dependency and security review:** inspect dependency health, lockfile consistency, exposed environment variables, and unsafe external-link patterns; avoid unnecessary dependency additions.
+- [ ] **Upgrade 44 — Performance baseline:** measure bundle/build output and key interactions first; optimize demonstrated bottlenecks instead of guessing.
+- [ ] **Upgrade 45 — Release and rollback runbook:** record how to verify a deployment, identify its commit, inspect logs, and return to the last known-good deployment.
+
+### Phase 11 — Optional capability extensions (46–50)
+
+- [ ] **Upgrade 46 — Import/export of public desktop preferences:** allow users to export/import only a validated, versioned allowlist of non-sensitive settings; exclude window contents, credentials, tokens, and vault data.
+- [ ] **Upgrade 47 — Local help and onboarding:** add a concise first-run tour/help surface that can be dismissed and reopened, without blocking normal use.
+- [ ] **Upgrade 48 — Terminal honesty and utility:** improve the simulated terminal's help and supported commands, clearly state that it is not a real shell, and never execute arbitrary commands.
+- [ ] **Upgrade 49 — Cross-browser compatibility pass:** verify supported browsers and graceful fallbacks for local storage, CSS effects, keyboard behavior, and date/time formatting.
+- [ ] **Upgrade 50 — Release acceptance and product review:** run the accumulated build, interaction, accessibility, responsive, privacy, and deployment checks; publish a verified change log and a short list of known limitations.
+
+### Planning guardrails
+
+- Keep upgrades 21–45 focused on reliability and product quality before adding more visual features.
+- Inspect the existing implementation before each upgrade; revise the plan if code already satisfies an item.
+- Do not connect cloud sync, analytics, external accounts, or new paid infrastructure as part of this roadmap by default.
+- Any proposed nonzero-cost service or infrastructure change must be priced and presented for explicit approval before proceeding.
+- Secret Space/vault work is intentionally not bundled into upgrades 21–50. Treat authentication, authorization, data exposure, and destructive wipe changes as a separately scoped security review with explicit approval.
+- A successful build or READY deployment is not proof of manual interaction, assistive-technology, or cross-device testing. Record each verification separately.
