@@ -21,10 +21,10 @@ This roadmap is intentionally incremental: protect the working production build,
 
 ## Phase 2 — Personal workspace
 
-- [ ] Make File Explorer navigation real within the portfolio's curated public content.
-- [ ] Add clear folders for public CV, school records, achievements, and completed work.
+- [x] Make File Explorer navigation real within the portfolio's curated public content.
+- [x] Add clear folders for public CV, school records, achievements, and completed work (empty/private records remain unpublished).
 - [ ] Verify all project speed-dial destinations and open external sites safely.
-- [ ] Add useful empty states, breadcrumbs, and search.
+- [x] Add useful empty states, breadcrumbs, and search.
 
 ## Phase 3 — Privacy and Secret Space
 
