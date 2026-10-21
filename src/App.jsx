@@ -236,10 +236,76 @@ function VaultApp() {
   </section>;
 }
 
+const explorerEntries = [
+  { id: 'projects', parent: 'home', type: 'folder', name: 'Projects', description: 'Websites and things I’m building', icon: '📁' },
+  { id: 'documents', parent: 'home', type: 'folder', name: 'Public documents', description: 'CV and shareable records', icon: '📄' },
+  { id: 'achievements', parent: 'home', type: 'folder', name: 'Achievements', description: 'Selected milestones and recognition', icon: '🏅' },
+  { id: 'about-contact', parent: 'home', type: 'folder', name: 'About & contact', description: 'Profile and ways to connect', icon: '👤' },
+  { id: 'ccc', parent: 'projects', type: 'link', name: 'Cambrian Climate Club', description: 'Climate education and student-led initiatives', icon: '🌱', url: 'https://cambrian-climate-club.vercel.app', location: 'Projects' },
+  { id: 'github', parent: 'projects', type: 'link', name: 'GitHub profile', description: 'Source code and experiments', icon: '⌘', url: 'https://github.com/prottushsui', location: 'Projects' },
+  { id: 'source', parent: 'projects', type: 'link', name: 'Prottush OS source', description: 'Repository for this portfolio desktop', icon: '💻', url: 'https://github.com/prottushsui/Prottush_OS', location: 'Projects' },
+  { id: 'cv', parent: 'documents', type: 'app', name: 'Curriculum Vitae', description: 'Public CV link has not been added yet', icon: '📄', app: 'resume', location: 'Public documents' },
+  { id: 'records', parent: 'documents', type: 'app', name: 'School records', description: 'No records are published here', icon: '🗂️', app: 'resume', location: 'Public documents' },
+  { id: 'certificates', parent: 'documents', type: 'app', name: 'Certificates & recognition', description: 'Curated public list — not yet populated', icon: '🏅', app: 'resume', location: 'Public documents' },
+  { id: 'profile', parent: 'about-contact', type: 'app', name: 'About me', description: 'Profile, interests, and current projects', icon: '👤', app: 'about', location: 'About & contact' },
+  { id: 'contact', parent: 'about-contact', type: 'app', name: 'Contact', description: 'Public profile and collaboration links', icon: '✉️', app: 'contact', location: 'About & contact' },
+];
+
+function ExplorerApp({ openApp }) {
+  const [currentFolder, setCurrentFolder] = useState('home');
+  const [query, setQuery] = useState('');
+  const folders = [{ id: 'home', name: 'Home' }, ...explorerEntries.filter(item => item.type === 'folder').map(({ id, name }) => ({ id, name }))];
+  const current = folders.find(folder => folder.id === currentFolder) || folders[0];
+  const normalizedQuery = query.trim().toLowerCase();
+  const entries = normalizedQuery
+    ? explorerEntries.filter(item => [item.name, item.description, item.location].filter(Boolean).join(' ').toLowerCase().includes(normalizedQuery))
+    : explorerEntries.filter(item => item.parent === currentFolder);
+  const breadcrumbs = currentFolder === 'home' ? [{ id: 'home', name: 'Home' }] : [{ id: 'home', name: 'Home' }, current];
+  const activate = item => {
+    if (item.type === 'folder') {
+      setCurrentFolder(item.id);
+      setQuery('');
+    } else if (item.type === 'app') {
+      openApp(item.app);
+    } else if (item.url) {
+      window.open(item.url, '_blank', 'noopener,noreferrer');
+    }
+  };
+  const folderShortcut = id => { setCurrentFolder(id); setQuery(''); };
+  return <section className="explorer">
+    <aside className="sidebar" aria-label="File Explorer navigation">
+      <b>Quick access</b>
+      <button className={currentFolder === 'home' ? 'selected' : ''} onClick={() => folderShortcut('home')}>⌂ <span>Home</span></button>
+      <button className={currentFolder === 'projects' ? 'selected' : ''} onClick={() => folderShortcut('projects')}>◇ <span>Projects</span></button>
+      <button className={currentFolder === 'documents' ? 'selected' : ''} onClick={() => folderShortcut('documents')}>▤ <span>Documents</span></button>
+      <button className={currentFolder === 'achievements' ? 'selected' : ''} onClick={() => folderShortcut('achievements')}>☆ <span>Achievements</span></button>
+      <button className={currentFolder === 'about-contact' ? 'selected' : ''} onClick={() => folderShortcut('about-contact')}>♙ <span>About & contact</span></button>
+    </aside>
+    <div className="explorer-main">
+      <div className="explorer-toolbar">
+        <div className="explorer-breadcrumbs" aria-label="Breadcrumb">
+          {breadcrumbs.map((crumb, index) => <span key={crumb.id}>
+            {index > 0 && <span className="crumb-separator">›</span>}
+            <button onClick={() => folderShortcut(crumb.id)}>{crumb.name}</button>
+          </span>)}
+        </div>
+        <label className="explorer-search"><Search size={14}/><input aria-label="Search public portfolio files" value={query} onChange={event => setQuery(event.target.value)} placeholder="Search this workspace"/></label>
+      </div>
+      <div className="explorer-heading"><div><p className="eyebrow">PUBLIC WORKSPACE</p><h2>{normalizedQuery ? 'Search results' : current.name}</h2></div><span>{entries.length} item{entries.length === 1 ? '' : 's'}</span></div>
+      {entries.length ? <div className="explorer-items" role="list">
+        {entries.map(item => <button className="explorer-item" key={item.id} onDoubleClick={() => activate(item)} onClick={event => { if (event.detail === 0) activate(item); }} title={item.type === 'folder' ? 'Double-click to open folder' : 'Double-click to open'}>
+          <span className="explorer-item-icon">{item.icon}</span><span className="explorer-item-copy"><b>{item.name}</b><small>{item.description}</small>{normalizedQuery && item.location && <em>{item.location}</em>}</span><span className="explorer-item-kind">{item.type === 'folder' ? 'FOLDER' : item.type === 'link' ? 'LINK' : 'SHORTCUT'}</span>
+        </button>)}
+      </div> : <div className="explorer-empty"><span>⌕</span><b>{normalizedQuery ? 'No matching items' : currentFolder === 'achievements' ? 'Nothing published here yet' : 'This folder is empty'}</b><p>{normalizedQuery ? 'Try another name or keyword.' : currentFolder === 'achievements' ? 'Verified achievements can be added here when they are ready to share publicly.' : 'Public files can be added when there is a verified, shareable version.'}</p></div>}
+      <p className="explorer-footnote">Only curated public links and shortcuts appear here. Secret Space and private records are kept separate.</p>
+    </div>
+  </section>;
+}
+
 function AppContent({ id, openApp, theme, setTheme }) {
   if (id === 'vault') return <VaultApp/>;
   if (id === 'about') return <section className="page about"><div className="profile-mark">P.</div><p className="eyebrow">USER PROFILE</p><h1>Hey, I’m Prottush.</h1><p className="muted">Student · Builder · Climate advocate</p><p className="about-intro">I like turning ideas into useful, thoughtful projects — from digital experiences to student-led initiatives. I’m especially interested in the intersection of technology, community, and positive change.</p><div className="info-grid"><article><strong>Community</strong><p>Secretary of Publicity at Cambrian Climate Club, contributing to climate awareness, student collaboration, and youth-led initiatives.</p></article><article><strong>What I explore</strong><p>Web development, product design, civic ideas, climate action, and ways technology can make complicated things easier to use.</p></article></div><h2 className="section-heading">A few things I’m building</h2><div className="info-grid project-summary"><article><strong>Prottush OS</strong><p>A Windows 11-inspired interactive portfolio designed as a desktop you can explore.</p><span className="project-tag">Web · UI</span></article><article><strong>ShasthoLink</strong><p>A healthcare SaaS showcase concept focused on a patient dashboard, medical timeline, and a clearer health journey.</p><span className="project-tag">Product concept</span></article><article><strong>Cambrian Climate Club</strong><p>A student-led climate community website supporting awareness, activities, and collaboration.</p><span className="project-tag">Community · Climate</span></article><article><strong>Climate Chronicles</strong><p>A digital magazine experience in progress, exploring how student climate stories and publications can be presented online.</p><span className="project-tag">Editorial · Web</span></article></div><p className="callout">This profile uses project and role details already available. Public contact details, personal documents, dates, and other identifying information can be added only when you choose what to share.</p></section>;
-  if (id === 'explorer') return <section className="explorer"><aside className="sidebar"><b>Quick access</b><span>⌂ Home</span><span>▣ Desktop</span><span>▤ Documents</span><span>◇ Projects</span></aside><div className="explorer-main"><div className="crumb">Home　›　This PC</div><h2>Folders</h2><div className="folder-grid">{[{name:'Projects',icon:'📁',app:'browser'},{name:'CV & records',icon:'📄',app:'resume'},{name:'About me',icon:'👤',app:'about'},{name:'Contact',icon:'✉️',app:'contact'}].map(f=><button className="folder" key={f.name} onDoubleClick={()=>openApp(f.app)} onClick={()=>{}}><span>{f.icon}</span><b>{f.name}</b><small>Double-click to open</small></button>)}</div><p className="muted tiny">Tip: double-click a folder to open its window.</p></div></section>;
+  if (id === 'explorer') return <ExplorerApp openApp={openApp}/>;
   if (id === 'browser') return <section className="browser"><div className="browser-bar"><span>←</span><span>→</span><div className="address">🔒　Your project speed dial</div></div><div className="browser-home"><div className="browser-logo">✳</div><h1>Where to next?</h1><p className="muted">A few places from around my digital world.</p><div className="link-grid">{projectLinks.map(p=><a className="project-link" href={p.url} target="_blank" rel="noreferrer" key={p.title}><span className="project-mark">{p.mark}</span><b>{p.title}</b><small>{p.description}</small><span className="external">↗</span></a>)}</div></div></section>;
   if (id === 'resume') return <section className="page"><div className="doc-head"><FileText size={34}/><div><p className="eyebrow">DOCUMENTS</p><h1>CV & records</h1><p className="muted">Public-safe documents will appear here.</p></div></div>{[{title:'Curriculum Vitae',desc:'Add your latest CV to public/documents and link it here.'},{title:'School records',desc:'Only include documents you intend to make public.'},{title:'Certificates & recognition',desc:'A curated list of achievements and certificates.'}].map(d=><div className="file-row" key={d.title}><FileText/><div><b>{d.title}</b><small>{d.desc}</small></div><span className="file-type">FILE</span></div>)}<p className="callout">No private student records should be published. Add only files you explicitly want visitors to access.</p></section>;
   if (id === 'contact') return <section className="page"><div className="contact-mark"><Mail/></div><p className="eyebrow">LET’S CONNECT</p><h1>Get in touch.</h1><p className="muted">For collaborations, projects, or a thoughtful conversation.</p><a className="contact-row" href="https://github.com/prottushsui" target="_blank" rel="noreferrer"><Globe/><span><b>GitHub</b><small>github.com/prottushsui</small></span><ChevronRight/></a><p className="callout">Add a public contact email or preferred social link when you are ready.</p></section>;
