@@ -48,3 +48,39 @@
 .resize-se{right:0;bottom:0;cursor:nwse-resize}
 .resize-sw{left:0;bottom:0;cursor:nesw-resize}
 @media(max-width:719px){.resize-handles{display:none}}
+
+/* File Explorer: real navigation over curated public portfolio content. */
+.explorer .sidebar{gap:7px}
+.explorer .sidebar button{display:flex;align-items:center;gap:10px;padding:9px 10px;border:0;border-radius:6px;background:transparent;color:inherit;text-align:left;font:inherit;cursor:pointer}
+.explorer .sidebar button:hover,.explorer .sidebar button.selected{background:#dce9f8;color:#245f9e}
+.explorer-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.explorer-breadcrumbs{display:flex;align-items:center;gap:8px;min-height:34px;padding:5px 10px;border:1px solid var(--line);border-radius:6px;background:#ffffffa6;color:#61758c}
+.explorer-breadcrumbs>span{display:flex;align-items:center;gap:8px}
+.explorer-breadcrumbs button{border:0;background:transparent;color:inherit;font:inherit;cursor:pointer}
+.explorer-breadcrumbs button:hover{color:#246bb2;text-decoration:underline}
+.crumb-separator{color:#a2afbf}
+.explorer-search{display:flex;align-items:center;gap:7px;min-width:150px;max-width:240px;flex:1;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:#ffffffb5;color:#71849a}
+.explorer-search input{width:100%;min-width:0;border:0;outline:0;background:transparent;color:inherit;font:inherit}
+.explorer-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin:21px 0 12px}
+.explorer-heading .eyebrow{margin:0 0 4px;font-size:9px}
+.explorer-heading h2{margin:0;font-size:17px;font-weight:600}
+.explorer-heading>span{font-size:10px;color:var(--muted)}
+.explorer-items{display:flex;flex-direction:column;gap:6px}
+.explorer-item{display:flex;align-items:center;gap:12px;width:100%;min-width:0;padding:11px 12px;border:1px solid var(--line);border-radius:7px;background:#ffffff8c;text-align:left;color:inherit;cursor:pointer;transition:background .15s,border-color .15s}
+.explorer-item:hover,.explorer-item:focus-visible{background:#fff;border-color:#9ac5f1;outline:none}
+.explorer-item-icon{display:grid;place-items:center;width:35px;height:35px;flex-shrink:0;border-radius:8px;background:#e8f1fd;font-size:18px}
+.explorer-item-copy{display:flex;flex-direction:column;gap:4px;flex:1;min-width:0}
+.explorer-item-copy b{font-size:11px}
+.explorer-item-copy small{overflow:hidden;text-overflow:ellipsis;color:var(--muted);font-size:10px;line-height:1.45}
+.explorer-item-copy em{color:#3476b8;font-size:9px;font-style:normal}
+.explorer-item-kind{flex-shrink:0;color:#71859c;font-size:8px;letter-spacing:.08em}
+.explorer-empty{display:flex;align-items:center;flex-direction:column;gap:7px;padding:36px 18px;border:1px dashed var(--line);border-radius:8px;text-align:center;color:var(--muted)}
+.explorer-empty>span{font-size:26px}
+.explorer-empty b{color:inherit;font-size:12px}
+.explorer-empty p{max-width:300px;margin:0;font-size:10px;line-height:1.6}
+.explorer-footnote{margin-top:17px;color:var(--muted);font-size:9px;line-height:1.5}
+.theme-dark .explorer .sidebar button:hover,.theme-dark .explorer .sidebar button.selected{background:#263d58;color:#d5e8ff}
+.theme-dark .explorer-breadcrumbs,.theme-dark .explorer-search,.theme-dark .explorer-item{background:#ffffff08}
+.theme-dark .explorer-item:hover,.theme-dark .explorer-item:focus-visible{background:#24364b}
+.theme-dark .explorer-item-icon{background:#263c56}
+@media(max-width:720px){.explorer .sidebar{display:none}.explorer-main{padding:15px}.explorer-toolbar{align-items:stretch;flex-direction:column}.explorer-search{max-width:none}.explorer-item-kind{display:none}}
