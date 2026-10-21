@@ -411,6 +411,7 @@ export default function App() {
   const [contextMenu,setContextMenu] = useState(null);
   const [shortcutPickerOpen,setShortcutPickerOpen] = useState(false);
   const [desktopNotice,setDesktopNotice] = useState('');
+  const [desktopRestoreIds,setDesktopRestoreIds] = useState(null);
   const [shortcutIds,setShortcutIds] = useState(() => {
     try {
       const saved = JSON.parse(localStorage.getItem('prottush-os-desktop-shortcuts') || '[]');
@@ -506,6 +507,7 @@ export default function App() {
     closeContextMenu();
   };
   const openApp = (id) => {
+    setDesktopRestoreIds(null);
     const nextZ=z+1; setZ(nextZ);
     setWindows(current=>({...current,[id]:current[id]?{...current[id],minimized:false,zIndex:nextZ}:{position:{x:startPosition.x+Object.keys(current).length*22,y:startPosition.y+Object.keys(current).length*18},maximized:false,minimized:false,zIndex:nextZ}}));
     setActiveId(id); setStartOpen(false); setSearch(''); setShowAllApps(false); setHighlightedApp(0);
@@ -544,6 +546,26 @@ export default function App() {
   const snapWindow = (id, side) => setWindows(current => ({
     ...current, [id]: { ...current[id], maximized: false, snap: side }
   }));
+  const toggleShowDesktop = () => {
+    if (desktopRestoreIds) {
+      const restoreIds = desktopRestoreIds.filter(id => windows[id]);
+      setWindows(current => {
+        const next = { ...current };
+        let nextZ = z;
+        restoreIds.forEach(id => { nextZ += 1; next[id] = { ...next[id], minimized: false, zIndex: nextZ }; });
+        return next;
+      });
+      setZ(current => current + restoreIds.length);
+      setActiveId(restoreIds[restoreIds.length - 1] ?? null);
+      setDesktopRestoreIds(null);
+      return;
+    }
+    const restoreIds = Object.entries(windows).filter(([, state]) => !state.minimized).sort((a, b) => (a[1].zIndex || 0) - (b[1].zIndex || 0)).map(([id]) => id);
+    if (!restoreIds.length) return;
+    setDesktopRestoreIds(restoreIds);
+    setWindows(current => Object.fromEntries(Object.entries(current).map(([id, state]) => [id, { ...state, minimized: true }])));
+    setActiveId(null);
+  };
   const visible = useMemo(()=>Object.entries(windows).filter(([,w])=>!w.minimized),[windows]);
   const query = search.trim().toLowerCase();
   const searchResults = apps.filter(a => [a.title, a.subtitle, a.group].some(value => value.toLowerCase().includes(query)));
@@ -616,6 +638,6 @@ export default function App() {
     {desktopNotice&&<div className="desktop-notice" role="status">{desktopNotice}</div>}
     {visible.map(([id,state])=>{const app=apps.find(a=>a.id===id);return <WindowFrame key={id} app={app} state={state} active={activeId===id} onFocus={()=>focusApp(id)} onClose={()=>closeApp(id)} onMinimize={()=>minimizeApp(id)} onMaximize={()=>toggleMaximize(id)} onMove={pos=>moveWindow(id,pos)} onResize={geometry=>resizeWindow(id,geometry)} onDragStart={()=>startWindowDrag(id)} onSnap={side=>snapWindow(id,side)}><AppContent id={id} openApp={openApp} theme={theme} setTheme={setTheme} wallpaper={wallpaper} setWallpaper={setWallpaper} accent={accent} setAccent={setAccent}/></WindowFrame>})}
     {startOpen&&<><button className="dismiss" aria-label="Dismiss Start menu" onClick={()=>setStartOpen(false)}/><section className="start-menu" role="dialog" aria-label="Start menu"><label className="start-search"><Search size={16}/><input autoFocus value={search} aria-label="Search apps by name, description, or category" aria-controls="start-app-results" aria-keyshortcuts="ArrowDown ArrowUp Enter" onChange={e=>{setSearch(e.target.value);setHighlightedApp(0);}} onKeyDown={event=>{if(event.key==='ArrowDown'){event.preventDefault();setHighlightedApp(index=>Math.min(index+1,Math.max(0,displayedApps.length-1)));}else if(event.key==='ArrowUp'){event.preventDefault();setHighlightedApp(index=>Math.max(0,index-1));}else if(event.key==='Enter'){event.preventDefault();launchHighlightedApp();}}} placeholder="Search apps, descriptions, categories…"/></label><div className="start-heading"><b>{query?'Search results':showAllApps?'All apps':'Pinned'}</b><button className="start-view-toggle" onClick={()=>{setShowAllApps(value=>!value);setHighlightedApp(0);}}>{showAllApps?'Pinned':'All apps'} <ChevronRight size={12}/></button></div><div className="start-grid" id="start-app-results" role="listbox" aria-label={query?'Search results':showAllApps?'All apps':'Pinned apps'}>{displayedApps.map((a,index)=>{const Icon=a.icon;return <button key={a.id} role="option" aria-selected={highlightedApp===index} className={highlightedApp===index?'app-result highlighted':'app-result'} onMouseEnter={()=>setHighlightedApp(index)} onClick={()=>openApp(a.id)}><span className={'icon-tile icon-'+a.id}><Icon size={22}/></span><span className="app-result-copy"><small>{a.title}</small><em>{a.subtitle}</em></span></button>})}{displayedApps.length===0&&<p className="start-empty">No apps match “{search}”. Try a name like Settings or Explorer.</p>}</div><p className="start-hint"><kbd>↑</kbd><kbd>↓</kbd> navigate <kbd>Enter</kbd> open <kbd>Esc</kbd> close</p><footer><span className="profile-mini">P.</span><b>Prottush</b><button aria-label="Close Start menu" onClick={()=>setStartOpen(false)}><Power size={16}/></button></footer></section></>}
-    <footer className="taskbar"><div className="weather"><span>☀</span><div><b>Clear skies</b><small>Make today count</small></div></div><div className="taskbar-center"><button className="task-icon windows-logo" aria-label="Start menu" aria-expanded={startOpen} onClick={()=>setStartOpen(v=>!v)}><span>▦</span></button>{[...new Set([...Object.keys(windows)])].map(id=>{const a=apps.find(app=>app.id===id);const Icon=a.icon;return <button key={id} className={'task-icon '+(activeId===id?'task-active':'')} title={a.title} aria-label={(windows[id].minimized?'Restore ':activeId===id?'Minimize ':'Focus ')+a.title} aria-pressed={activeId===id&&!windows[id].minimized} onClick={()=>windows[id].minimized?openApp(id):activeId===id?minimizeApp(id):focusApp(id)}><Icon size={19}/></button>})}<button className="task-icon" title="Search" aria-label="Open app search" onClick={()=>setStartOpen(true)}><Search size={18}/></button></div><div className="system-tray"><span>⌃</span><span>◖</span><span>◕</span><time>{clock.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</time><time>{clock.toLocaleDateString([], {month:'numeric',day:'numeric',year:'numeric'})}</time></div></footer>
+    <footer className="taskbar"><div className="weather"><span>☀</span><div><b>Clear skies</b><small>Make today count</small></div></div><div className="taskbar-center"><button className="task-icon windows-logo" aria-label="Start menu" aria-expanded={startOpen} onClick={()=>setStartOpen(v=>!v)}><span>▦</span></button>{[...new Set([...Object.keys(windows)])].map(id=>{const a=apps.find(app=>app.id===id);const Icon=a.icon;return <button key={id} className={'task-icon '+(activeId===id&&!windows[id].minimized?'task-active':'')+(windows[id].minimized?' task-minimized':'')} data-window-state={windows[id].minimized?'minimized':activeId===id?'active':'open'} title={a.title} aria-label={(windows[id].minimized?'Restore ':activeId===id?'Minimize ':'Focus ')+a.title} aria-pressed={activeId===id&&!windows[id].minimized} onClick={()=>windows[id].minimized?openApp(id):activeId===id?minimizeApp(id):focusApp(id)}><Icon size={19}/></button>})}<button className="task-icon" title="Search" aria-label="Open app search" onClick={()=>setStartOpen(true)}><Search size={18}/></button></div><div className="system-tray"><span>⌃</span><span>◖</span><span>◕</span><time>{clock.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</time><time>{clock.toLocaleDateString([], {month:'numeric',day:'numeric',year:'numeric'})}</time></div><button className="show-desktop" title="Show desktop" aria-label={desktopRestoreIds ? 'Restore windows' : 'Show desktop'} aria-pressed={Boolean(desktopRestoreIds)} onClick={toggleShowDesktop}/></footer>
   </main>;
 }
