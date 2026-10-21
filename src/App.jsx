@@ -326,7 +326,7 @@ function AppContent({ id, openApp, theme, setTheme, wallpaper, setWallpaper, acc
     event.preventDefault();
     const command = terminalInput.trim();
     if (!command) return;
-    const [verb, ...args] = command.split(/\\s+/);
+    const [verb, ...args] = command.split(/\s+/);
     const normalized = verb.toLowerCase();
     let output = '';
     if (normalized === 'help') output = 'Supported commands: help, date, apps, whoami, theme, open <app>, clear. No operating-system commands are executed.';
