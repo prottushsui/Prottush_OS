@@ -2,7 +2,33 @@ import { useEffect, useMemo, useState } from 'react';
 import { apps, projectLinks } from './apps.js';
 import { Search, Power, Minus, Square, X, ChevronRight, Sun, Moon, Folder, FileText, Globe, Mail, Monitor, Terminal as TerminalIcon, ShieldCheck, Upload, Download, Trash2, LockKeyhole, RefreshCw, LogOut, HardDrive, AlertTriangle } from 'lucide-react';
 
-const initialWindows = {};
+const LAYOUT_STORAGE_KEY = 'prottush-os-layout-v1';
+
+function readSavedWindows() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(LAYOUT_STORAGE_KEY) || 'null');
+    if (!saved || typeof saved !== 'object' || Array.isArray(saved)) return {};
+    return Object.fromEntries(Object.entries(saved).flatMap(([id, state]) => {
+      if (!apps.some(app => app.id === id) || !state || typeof state !== 'object') return [];
+      const rawX = Number(state.position?.x);
+      const rawY = Number(state.position?.y);
+      const x = Number.isFinite(rawX) ? Math.max(0, Math.min(Math.max(0, window.innerWidth - 300), rawX)) : 180;
+      const y = Number.isFinite(rawY) ? Math.max(0, Math.min(Math.max(0, window.innerHeight - 110), rawY)) : 72;
+      const rawZ = Number(state.zIndex);
+      return [[id, {
+        position: { x, y },
+        maximized: Boolean(state.maximized),
+        minimized: Boolean(state.minimized),
+        zIndex: Number.isFinite(rawZ) ? Math.max(1, Math.min(10000, rawZ)) : 10,
+        snap: state.snap === 'left' || state.snap === 'right' ? state.snap : null,
+      }]];
+    }));
+  } catch {
+    return {};
+  }
+}
+
+const initialWindows = readSavedWindows();
 const startPosition = { x: 180, y: 72 };
 
 // Keep app content separate from the shared shell so adding a new app is predictable.
@@ -263,6 +289,21 @@ export default function App() {
   useEffect(() => {
     try { localStorage.setItem('prottush-os-theme', theme); } catch { /* Storage may be unavailable in private contexts. */ }
   }, [theme]);
+
+  // Persist only window geometry and visibility state. App contents, vault passwords,
+  // session tokens, and file data are never included in the saved desktop layout.
+  useEffect(() => {
+    try {
+      const layout = Object.fromEntries(Object.entries(windows).map(([id, state]) => [id, {
+        position: state.position,
+        maximized: Boolean(state.maximized),
+        minimized: Boolean(state.minimized),
+        zIndex: state.zIndex,
+        snap: state.snap === 'left' || state.snap === 'right' ? state.snap : null,
+      }]));
+      localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify(layout));
+    } catch { /* Keep the desktop usable when storage is unavailable or full. */ }
+  }, [windows]);
   // A live clock refreshes independently of other desktop interactions.
   useEffect(() => {
     const timer = window.setInterval(() => setClock(new Date()), 30000);
