@@ -84,3 +84,16 @@
 .theme-dark .explorer-item:hover,.theme-dark .explorer-item:focus-visible{background:#24364b}
 .theme-dark .explorer-item-icon{background:#263c56}
 @media(max-width:720px){.explorer .sidebar{display:none}.explorer-main{padding:15px}.explorer-toolbar{align-items:stretch;flex-direction:column}.explorer-search{max-width:none}.explorer-item-kind{display:none}}
+
+/* Accessibility polish: explicit focus, readable focus states, and motion preferences. */
+:root{scroll-behavior:smooth}
+button,a,input,select,textarea,[tabindex]:not([tabindex="-1"]){-webkit-tap-highlight-color:transparent}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex]:not([tabindex="-1"]):focus-visible{outline:3px solid #075fc4;outline-offset:3px;box-shadow:0 0 0 2px #fff}
+.theme-dark button:focus-visible,.theme-dark a:focus-visible,.theme-dark input:focus-visible,.theme-dark select:focus-visible,.theme-dark textarea:focus-visible,.theme-dark [tabindex]:not([tabindex="-1"]):focus-visible{outline-color:#8fc5ff;box-shadow:0 0 0 2px #152235}
+.window[aria-hidden="true"]{pointer-events:none}
+.titlebar{touch-action:pan-y}
+.window-controls button:focus-visible{position:relative;z-index:2}
+.desktop-icon:focus-visible{background:rgba(255,255,255,.48);border-color:rgba(30,105,190,.65)}
+.task-icon:focus-visible,.start-grid button:focus-visible{background:#dce9f8}
+.theme-dark .task-icon:focus-visible,.theme-dark .start-grid button:focus-visible{background:#263d58}
+@media(prefers-reduced-motion:reduce){:root{scroll-behavior:auto}.desktop-icon,.task-icon,.project-link,.explorer-item,.vault-progress span{transition:none!important}}
