@@ -15,8 +15,8 @@ This roadmap is intentionally incremental: protect the working production build,
 - [x] Prevent global keyboard shortcuts from hijacking input and editable fields.
 - [x] Keep Escape able to dismiss Start even while its search field is focused.
 - [ ] Test open, focus, minimize, restore, close, snap, and maximize across multiple windows.
-- [ ] Add reliable window resize handles and enforce viewport bounds.
-- [ ] Improve active-window handoff when the focused window is minimized or closed.
+- [x] Add desktop window resize handles with minimum dimensions and viewport bounds.
+- [x] Hand focus to the highest remaining visible window when the active window is minimized or closed.
 - [ ] Test keyboard access, reduced motion, and narrow viewport behavior.
 
 ## Phase 2 — Personal workspace
