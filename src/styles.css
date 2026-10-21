@@ -96,3 +96,53 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .task-icon:focus-visible,.start-grid button:focus-visible{background:#dce9f8}
 .theme-dark .task-icon:focus-visible,.theme-dark .start-grid button:focus-visible{background:#263d58}
 @media(prefers-reduced-motion:reduce){:root{scroll-behavior:auto}.desktop-icon,.task-icon,.project-link,.explorer-item,.vault-progress span{transition:none!important}}
+
+
+/* Upgrade 9 — client-side desktop personalization. */
+.desktop{--accent:#176bd2}
+.task-active:after{background:var(--accent)}
+.theme-choice.selected{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.settings-page{max-width:900px}
+.settings-section{margin-top:25px;padding-top:19px;border-top:1px solid var(--line)}
+.settings-section-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.settings-section-heading h2{margin:0;font-size:14px;font-weight:650}
+.settings-section-heading>span{color:var(--muted);font-size:9px;font-weight:700;letter-spacing:.12em}
+.settings-section>.muted{margin:7px 0 13px;font-size:11px}
+.wallpaper-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.wallpaper-option{display:grid;grid-template-columns:1fr auto;gap:8px;min-width:0;padding:8px;border:1px solid var(--line);border-radius:9px;background:#ffffff70;text-align:left;cursor:pointer;color:inherit}
+.wallpaper-option.selected{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.wallpaper-preview{position:relative;display:block;grid-column:1/-1;height:64px;overflow:hidden;border-radius:5px;background:linear-gradient(130deg,#dceafa,#f0f5ff 45%,#b9d6f6)}
+.wallpaper-preview i{position:absolute;display:block;width:70%;height:100%;left:18%;top:18%;border-radius:50% 40% 55% 35%;background:linear-gradient(140deg,#ffffffc9,#4b99e633);transform:rotate(-20deg)}
+.wallpaper-preview i+ i{width:55%;height:90%;left:55%;top:35%;background:linear-gradient(135deg,#68aff333,#ffffff8a);filter:blur(5px)}
+.wallpaper-preview-aurora{background:linear-gradient(140deg,#081b35,#135b68 48%,#6b5aa5)}
+.wallpaper-preview-aurora i{background:linear-gradient(135deg,#55e5b2aa,#84b6ff44,#d3a3ff88)}
+.wallpaper-preview-sunset{background:linear-gradient(135deg,#42245f,#dc6c73 55%,#ffce91)}
+.wallpaper-preview-sunset i{background:linear-gradient(135deg,#ffe7a9aa,#ff9c7777)}
+.wallpaper-preview-forest{background:linear-gradient(135deg,#102f2b,#26715a 52%,#b4cda0)}
+.wallpaper-preview-forest i{background:linear-gradient(135deg,#d3f0c788,#49a47a66)}
+.wallpaper-preview-midnight{background:linear-gradient(135deg,#080f26,#242c65 58%,#5b3c85)}
+.wallpaper-preview-midnight i{background:linear-gradient(135deg,#a6b8ff99,#d8a5ff55)}
+.wallpaper-option-copy{display:flex;flex-direction:column;gap:4px;min-width:0}
+.wallpaper-option-copy b{font-size:10px}
+.wallpaper-option-copy small{font-size:9px;color:var(--muted)}
+.wallpaper-check{display:grid;place-items:center;width:17px;height:17px;border-radius:50%;background:transparent;color:var(--accent);font-size:11px;font-weight:700}
+.wallpaper-option.selected .wallpaper-check{background:color-mix(in srgb,var(--accent) 13%,transparent)}
+.accent-options{display:flex;align-items:center;gap:11px;flex-wrap:wrap}
+.accent-option{display:grid;place-items:center;width:35px;height:35px;border:2px solid transparent;border-radius:50%;background:transparent;cursor:pointer}
+.accent-option span{display:block;width:23px;height:23px;border-radius:50%;background:var(--swatch)}
+.accent-option.selected{border-color:var(--swatch);box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--swatch)}
+.settings-note{font-size:10px}
+.desktop.wallpaper-default{background:radial-gradient(ellipse at 68% 45%,#d5eaff 0,#a6cef4 27%,transparent 55%),linear-gradient(130deg,#dceafa,#f0f5ff 45%,#b9d6f6)}
+.desktop.wallpaper-aurora{background:radial-gradient(ellipse at 70% 25%,#347f8c 0,transparent 44%),linear-gradient(135deg,#081b35,#173d59 48%,#473d78)}
+.desktop.wallpaper-sunset{background:radial-gradient(ellipse at 70% 34%,#ffd5a0 0,transparent 35%),linear-gradient(135deg,#44245e,#c45e78 53%,#f0a56e)}
+.desktop.wallpaper-forest{background:radial-gradient(ellipse at 70% 35%,#519a76 0,transparent 36%),linear-gradient(135deg,#102d2b,#245d4d 54%,#8cae83)}
+.desktop.wallpaper-midnight{background:radial-gradient(ellipse at 65% 32%,#424a91 0,transparent 38%),linear-gradient(135deg,#080f26,#1c2859 52%,#48316b)}
+.desktop.wallpaper-aurora .shape-one{background:linear-gradient(135deg,#9bf2d0a6,#b6c8ff20)}
+.desktop.wallpaper-sunset .shape-one{background:linear-gradient(135deg,#ffe0b5a8,#f79ba544)}
+.desktop.wallpaper-forest .shape-one{background:linear-gradient(135deg,#d3f0c788,#4d987044)}
+.desktop.wallpaper-midnight .shape-one{background:linear-gradient(135deg,#a8b7ff88,#a278dc33)}
+.theme-dark.desktop.wallpaper-default{background:radial-gradient(ellipse at 68% 45%,#253d59 0,#182d46 32%,transparent 75%),linear-gradient(130deg,#101a2a,#17283e 50%,#0e1725)}
+.theme-dark .wallpaper-option{background:#ffffff08}
+.theme-dark .wallpaper-preview-default{background:linear-gradient(130deg,#182d46,#253d59 50%,#101a2a)}
+.theme-dark .settings-note{background:#142b43;color:#bdd6ef;border-color:#284f76}
+@media(max-width:520px){.wallpaper-options{grid-template-columns:repeat(2,minmax(0,1fr))}.wallpaper-preview{height:58px}.settings-page{padding:20px 17px}}
