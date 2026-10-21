@@ -216,23 +216,35 @@ function AppContent({ id, openApp, theme, setTheme }) {
   if (id === 'resume') return <section className="page"><div className="doc-head"><FileText size={34}/><div><p className="eyebrow">DOCUMENTS</p><h1>CV & records</h1><p className="muted">Public-safe documents will appear here.</p></div></div>{[{title:'Curriculum Vitae',desc:'Add your latest CV to public/documents and link it here.'},{title:'School records',desc:'Only include documents you intend to make public.'},{title:'Certificates & recognition',desc:'A curated list of achievements and certificates.'}].map(d=><div className="file-row" key={d.title}><FileText/><div><b>{d.title}</b><small>{d.desc}</small></div><span className="file-type">FILE</span></div>)}<p className="callout">No private student records should be published. Add only files you explicitly want visitors to access.</p></section>;
   if (id === 'contact') return <section className="page"><div className="contact-mark"><Mail/></div><p className="eyebrow">LET’S CONNECT</p><h1>Get in touch.</h1><p className="muted">For collaborations, projects, or a thoughtful conversation.</p><a className="contact-row" href="https://github.com/prottushsui" target="_blank" rel="noreferrer"><Globe/><span><b>GitHub</b><small>github.com/prottushsui</small></span><ChevronRight/></a><p className="callout">Add a public contact email or preferred social link when you are ready.</p></section>;
   if (id === 'terminal') return <section className="terminal"><div><i/> <i/> <i/> <span>PowerShell</span></div><p>Windows PowerShell</p><p>Copyright (C) Microsoft Corporation. All rights reserved.</p><br/><p>PS C:\Users\Prottush&gt; <span className="terminal-caret">_</span></p><p className="terminal-muted">This is a visual portfolio terminal, not a real shell.</p></section>;
-  if (id === 'settings') return <section className="page"><div className="doc-head"><Monitor size={34}/><div><p className="eyebrow">SYSTEM</p><h1>Personalization</h1><p className="muted">Choose your desktop appearance.</p></div></div><div className="theme-row"><button className={theme==='light'?'theme-choice selected':'theme-choice'} onClick={()=>setTheme('light')}><Sun/>Light</button><button className={theme==='dark'?'theme-choice selected':'theme-choice'} onClick={()=>setTheme('dark')}><Moon/>Dark</button></div><p className="callout">Settings are currently session-only; persistent preferences can be added later.</p></section>;
+  if (id === 'settings') return <section className="page"><div className="doc-head"><Monitor size={34}/><div><p className="eyebrow">SYSTEM</p><h1>Personalization</h1><p className="muted">Choose your desktop appearance.</p></div></div><div className="theme-row"><button className={theme==='light'?'theme-choice selected':'theme-choice'} onClick={()=>setTheme('light')}><Sun/>Light</button><button className={theme==='dark'?'theme-choice selected':'theme-choice'} onClick={()=>setTheme('dark')}><Moon/>Dark</button></div><p className="callout">Your appearance preference is saved in this browser and will be remembered on your next visit.</p></section>;
   return null;
 }
 
-function WindowFrame({ app, state, active, onFocus, onClose, onMinimize, onMaximize, onMove, children }) {
+function WindowFrame({ app, state, active, onFocus, onClose, onMinimize, onMaximize, onMove, onDragStart, onSnap, children }) {
   const Icon = app.icon;
   const drag = (event) => {
-    if (event.target.closest('button')) return;
+    if (event.target.closest('button') || event.button !== 0) return;
     onFocus();
-    const origin = { x: event.clientX, y: event.clientY, wx: state.position.x, wy: state.position.y };
-    const move = (e) => onMove({ x: Math.max(0, origin.wx + e.clientX - origin.x), y: Math.max(0, origin.wy + e.clientY - origin.y) });
-    const up = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); };
+    const rect = event.currentTarget.closest('.window').getBoundingClientRect();
+    const origin = { x: event.clientX, y: event.clientY, wx: rect.left, wy: rect.top };
+    onDragStart();
+    const move = (e) => onMove({
+      x: Math.max(0, Math.min(window.innerWidth - 300, origin.wx + e.clientX - origin.x)),
+      y: Math.max(0, Math.min(window.innerHeight - 110, origin.wy + e.clientY - origin.y))
+    });
+    const up = (e) => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      if (window.innerWidth >= 720 && e.clientX <= 12) onSnap('left');
+      else if (window.innerWidth >= 720 && e.clientX >= window.innerWidth - 12) onSnap('right');
+      else if (e.clientY <= 8) onMaximize();
+    };
     window.addEventListener('pointermove', move);
     window.addEventListener('pointerup', up);
   };
-  return <section className={'window '+(active?'active ':'')+(state.maximized?'maximized':'')} style={{left:state.maximized?12:state.position.x,top:state.maximized?12:state.position.y,zIndex:state.zIndex}} onPointerDown={onFocus}>
-    <header className="titlebar" onPointerDown={drag}><span className="title-icon"><Icon size={15}/></span><span>{app.title}</span><div className="window-controls"><button aria-label="Minimize" onClick={onMinimize}><Minus size={14}/></button><button aria-label="Maximize" onClick={onMaximize}><Square size={11}/></button><button className="close" aria-label="Close" onClick={onClose}><X size={15}/></button></div></header>
+  const windowClass = 'window '+(active?'active ':'')+(state.maximized?'maximized ':'')+(state.snap ? 'snapped-'+state.snap : '');
+  return <section className={windowClass} style={{left:state.maximized?12:state.position.x,top:state.maximized?12:state.position.y,zIndex:state.zIndex}} onPointerDown={onFocus}>
+    <header className="titlebar" onPointerDown={drag} onDoubleClick={event => { if (!event.target.closest("button")) onMaximize(); }}><span className="title-icon"><Icon size={15}/></span><span>{app.title}</span><div className="window-controls"><button aria-label="Minimize" onClick={onMinimize}><Minus size={14}/></button><button aria-label={state.maximized?'Restore':'Maximize'} onClick={onMaximize}><Square size={11}/></button><button className="close" aria-label="Close" onClick={onClose}><X size={15}/></button></div></header>
     <div className="window-content">{children}</div>
   </section>;
 }
@@ -242,7 +254,20 @@ export default function App() {
   const [activeId,setActiveId] = useState(null);
   const [startOpen,setStartOpen] = useState(false);
   const [search,setSearch] = useState('');
-  const [theme,setTheme] = useState('light');
+  // Keep appearance preferences across reloads without making storage mandatory.
+  const [theme,setTheme] = useState(() => {
+    try { return localStorage.getItem('prottush-os-theme') === 'dark' ? 'dark' : 'light'; }
+    catch { return 'light'; }
+  });
+  const [clock,setClock] = useState(() => new Date());
+  useEffect(() => {
+    try { localStorage.setItem('prottush-os-theme', theme); } catch { /* Storage may be unavailable in private contexts. */ }
+  }, [theme]);
+  // A live clock refreshes independently of other desktop interactions.
+  useEffect(() => {
+    const timer = window.setInterval(() => setClock(new Date()), 30000);
+    return () => window.clearInterval(timer);
+  }, []);
   const [z,setZ] = useState(10);
   const openApp = (id) => {
     const nextZ=z+1; setZ(nextZ);
@@ -252,17 +277,43 @@ export default function App() {
   const focusApp = (id) => { const nextZ=z+1; setZ(nextZ); setWindows(current=>({...current,[id]:{...current[id],minimized:false,zIndex:nextZ}})); setActiveId(id); };
   const closeApp = (id) => { setWindows(current=>{const copy={...current};delete copy[id];return copy;});setActiveId(current=>current===id?null:current); };
   const minimizeApp = (id) => { setWindows(current=>({...current,[id]:{...current[id],minimized:true}}));setActiveId(current=>current===id?null:current); };
-  const toggleMaximize = (id) => setWindows(current=>({...current,[id]:{...current[id],maximized:!current[id].maximized}}));
+  const toggleMaximize = (id) => setWindows(current=>({...current,[id]:{...current[id],maximized:!current[id].maximized,snap:null}}));
   const moveWindow = (id,position) => setWindows(current=>({...current,[id]:{...current[id],position}}));
+  const startWindowDrag = (id) => setWindows(current=>({...current,[id]:{...current[id],maximized:false,snap:null}}));
+  const snapWindow = (id,side) => setWindows(current=>({...current,[id]:{...current[id],maximized:false,snap:side}}));
   const visible = useMemo(()=>Object.entries(windows).filter(([,w])=>!w.minimized),[windows]);
   const filtered = apps.filter(a=>a.title.toLowerCase().includes(search.toLowerCase()));
-  useEffect(()=>{const key=e=>{if(e.key==='Escape'){setStartOpen(false);if(activeId)closeApp(activeId);}};window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);},[activeId]);
+  useEffect(() => {
+    const key = (event) => {
+      const shortcut = event.altKey && event.shiftKey && !event.ctrlKey && !event.metaKey;
+      if (shortcut && !event.repeat) {
+        const shortcuts = { s: 'start', e: 'explorer', b: 'browser', t: 'terminal' };
+        const target = shortcuts[event.key.toLowerCase()];
+        if (target) {
+          event.preventDefault();
+          if (target === 'start') setStartOpen(value => !value);
+          else openApp(target);
+          return;
+        }
+      }
+      if (event.key === 'Escape') {
+        if (startOpen) setStartOpen(false);
+        else if (activeId) closeApp(activeId);
+      }
+      if (event.altKey && event.key === 'F4' && activeId) {
+        event.preventDefault();
+        closeApp(activeId);
+      }
+    };
+    window.addEventListener('keydown', key);
+    return () => window.removeEventListener('keydown', key);
+  }, [activeId, startOpen, z]);
   return <main className={'desktop theme-'+theme} onPointerDown={e=>{if(e.target===e.currentTarget)setStartOpen(false);}}>
     <div className="wallpaper-shape shape-one"/><div className="wallpaper-shape shape-two"/>
     <div className="desktop-icons">{apps.filter(a=>['about','explorer','browser','resume','contact','vault'].includes(a.id)).map(a=>{const Icon=a.icon;return <button className="desktop-icon" key={a.id} onDoubleClick={()=>openApp(a.id)}><span className={'icon-tile icon-'+a.id}><Icon size={25}/></span><span>{a.title}</span></button>})}</div>
     <div className="welcome"><span>PERSONAL DESKTOP</span><h1>Good to see you.</h1><p>Double-click an icon to explore.</p></div>
-    {visible.map(([id,state])=>{const app=apps.find(a=>a.id===id);return <WindowFrame key={id} app={app} state={state} active={activeId===id} onFocus={()=>focusApp(id)} onClose={()=>closeApp(id)} onMinimize={()=>minimizeApp(id)} onMaximize={()=>toggleMaximize(id)} onMove={pos=>moveWindow(id,pos)}><AppContent id={id} openApp={openApp} theme={theme} setTheme={setTheme}/></WindowFrame>})}
+    {visible.map(([id,state])=>{const app=apps.find(a=>a.id===id);return <WindowFrame key={id} app={app} state={state} active={activeId===id} onFocus={()=>focusApp(id)} onClose={()=>closeApp(id)} onMinimize={()=>minimizeApp(id)} onMaximize={()=>toggleMaximize(id)} onMove={pos=>moveWindow(id,pos)} onDragStart={()=>startWindowDrag(id)} onSnap={side=>snapWindow(id,side)}><AppContent id={id} openApp={openApp} theme={theme} setTheme={setTheme}/></WindowFrame>})}
     {startOpen&&<><button className="dismiss" aria-label="Dismiss Start menu" onClick={()=>setStartOpen(false)}/><section className="start-menu"><label className="start-search"><Search size={16}/><input autoFocus value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search for apps, settings, and documents"/></label><div className="start-heading"><b>{search?'Search results':'Pinned'}</b><span>All apps　›</span></div><div className="start-grid">{filtered.map(a=>{const Icon=a.icon;return <button key={a.id} onClick={()=>openApp(a.id)}><span className={'icon-tile icon-'+a.id}><Icon size={22}/></span><small>{a.title}</small></button>})}</div><footer><span className="profile-mini">P.</span><b>Prottush</b><button aria-label="Power menu" onClick={()=>setStartOpen(false)}><Power size={16}/></button></footer></section></>}
-    <footer className="taskbar"><div className="weather"><span>☀</span><div><b>Clear skies</b><small>Make today count</small></div></div><div className="taskbar-center"><button className="task-icon windows-logo" aria-label="Start" onClick={()=>setStartOpen(v=>!v)}><span>▦</span></button>{[...new Set([...Object.keys(windows)])].map(id=>{const a=apps.find(app=>app.id===id);const Icon=a.icon;return <button key={id} className={'task-icon '+(activeId===id?'task-active':'')} title={a.title} onClick={()=>windows[id].minimized?openApp(id):activeId===id?minimizeApp(id):focusApp(id)}><Icon size={19}/></button>})}<button className="task-icon" title="Search" onClick={()=>setStartOpen(true)}><Search size={18}/></button></div><div className="system-tray"><span>⌃</span><span>◖</span><span>◕</span><time>{new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</time><time>{new Date().toLocaleDateString([], {month:'numeric',day:'numeric',year:'numeric'})}</time></div></footer>
+    <footer className="taskbar"><div className="weather"><span>☀</span><div><b>Clear skies</b><small>Make today count</small></div></div><div className="taskbar-center"><button className="task-icon windows-logo" aria-label="Start" onClick={()=>setStartOpen(v=>!v)}><span>▦</span></button>{[...new Set([...Object.keys(windows)])].map(id=>{const a=apps.find(app=>app.id===id);const Icon=a.icon;return <button key={id} className={'task-icon '+(activeId===id?'task-active':'')} title={a.title} onClick={()=>windows[id].minimized?openApp(id):activeId===id?minimizeApp(id):focusApp(id)}><Icon size={19}/></button>})}<button className="task-icon" title="Search" onClick={()=>setStartOpen(true)}><Search size={18}/></button></div><div className="system-tray"><span>⌃</span><span>◖</span><span>◕</span><time>{clock.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</time><time>{clock.toLocaleDateString([], {month:'numeric',day:'numeric',year:'numeric'})}</time></div></footer>
   </main>;
 }
