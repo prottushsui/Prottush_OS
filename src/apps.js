@@ -1,4 +1,4 @@
-import { UserRound, FolderOpen, Globe, FileText, Mail, Terminal, Settings, ShieldCheck } from 'lucide-react';
+import { UserRound, FolderOpen, Globe, FileText, Mail, Terminal, Settings, ShieldCheck, CircleHelp } from 'lucide-react';
 
 // The registry is the single source of truth for desktop shortcuts and Start menu apps.
 export const apps = [
@@ -8,7 +8,8 @@ export const apps = [
   { id: 'resume', title: 'CV & records', icon: FileText, subtitle: 'Public documents', group: 'Personal' },
   { id: 'contact', title: 'Contact', icon: Mail, subtitle: 'Get in touch', group: 'Personal' },
   { id: 'terminal', title: 'Terminal', icon: Terminal, subtitle: 'A tiny command prompt', group: 'System' },
-  { id: 'settings', title: 'Settings', icon: Settings, subtitle: 'Appearance', group: 'System' },
+  { id: 'settings', title: 'Settings', icon: Settings, subtitle: 'Appearance and preferences', group: 'System' },
+  { id: 'help', title: 'Help & tips', icon: CircleHelp, subtitle: 'Shortcuts, privacy, and getting started', group: 'System' },
   { id: 'vault', title: 'Secret Space', icon: ShieldCheck, subtitle: 'Private cloud file vault', group: 'Personal' },
 ];
 
