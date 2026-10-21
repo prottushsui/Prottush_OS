@@ -36,8 +36,9 @@ This roadmap is intentionally incremental: protect the working production build,
 
 ## Phase 4 — System utilities
 
-- [ ] Expand Settings for wallpaper and desktop preferences.
+- [x] Expand Settings with five wallpapers, light/dark theme, and five accent colours; persist preferences locally in the current browser.
 - [ ] Add keyboard-navigable app search and launcher behavior.
+- [x] Keep personalization client-side only; do not add infrastructure, cloud sync, or vault coupling.
 - [ ] Improve Terminal mock-up and system information without implying real shell access.
 - [ ] Add useful quick settings and notifications only where they improve the experience.
 
@@ -58,3 +59,12 @@ This roadmap is intentionally incremental: protect the working production build,
 5. Merge only when the change is understood and safe.
 6. Confirm the Vercel production deployment is ready.
 7. Record what was actually verified; do not equate a successful build with full interaction testing.
+
+
+## Upgrade 9 — Settings & Personalization
+
+- [x] Add five selectable desktop wallpapers with live previews.
+- [x] Add light/dark appearance selection and five accent colours.
+- [x] Persist theme, wallpaper, and accent in separate local browser keys with safe fallbacks.
+- [x] Keep the vault and backend untouched; preferences are not uploaded or synced.
+- [ ] Verify settings interactions manually on desktop and mobile after deployment.
