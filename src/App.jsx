@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { apps, projectLinks } from './apps.js';
+import { createPreferencesExport, parsePreferencesFile } from './preferences.js';
 import { Search, Power, Minus, Square, X, ChevronRight, Sun, Moon, Folder, FileText, Globe, Mail, Monitor, Terminal as TerminalIcon, ShieldCheck, Upload, Download, Trash2, LockKeyhole, RefreshCw, LogOut, HardDrive, AlertTriangle, Plus, Settings2, Check, Bell as BellIcon } from 'lucide-react';
 
 const LAYOUT_STORAGE_KEY = 'prottush-os-layout-v1';
@@ -303,6 +304,38 @@ function ExplorerApp({ openApp }) {
 }
 
 function AppContent({ id, openApp, theme, setTheme, wallpaper, setWallpaper, accent, setAccent }) {
+  const [settingsMessage, setSettingsMessage] = useState('');
+  const exportPreferences = () => {
+    try {
+      const payload = createPreferencesExport({ theme, wallpaper, accent });
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = 'prottush-os-settings.json';
+      anchor.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      setSettingsMessage('Appearance settings exported. This file contains only theme, wallpaper, and accent.');
+    } catch {
+      setSettingsMessage('Could not export settings in this browser.');
+    }
+  };
+  const importPreferences = async (event) => {
+    const input = event.currentTarget;
+    const file = input.files?.[0];
+    if (!file) return;
+    try {
+      const preferences = parsePreferencesFile(await file.text());
+      setTheme(preferences.theme);
+      setWallpaper(preferences.wallpaper);
+      setAccent(preferences.accent);
+      setSettingsMessage('Appearance settings imported. No app, window, or vault data was changed.');
+    } catch (error) {
+      setSettingsMessage(error instanceof Error ? error.message : 'Could not import this settings file.');
+    } finally {
+      input.value = '';
+    }
+  };
   if (id === 'vault') return <VaultApp/>;
   if (id === 'about') return <section className="page about"><div className="profile-mark">P.</div><p className="eyebrow">USER PROFILE</p><h1>Hey, I’m Prottush.</h1><p className="muted">Student · Builder · Climate advocate</p><p className="about-intro">I like turning ideas into useful, thoughtful projects — from digital experiences to student-led initiatives. I’m especially interested in the intersection of technology, community, and positive change.</p><div className="info-grid"><article><strong>Community</strong><p>Secretary of Publicity at Cambrian Climate Club, contributing to climate awareness, student collaboration, and youth-led initiatives.</p></article><article><strong>What I explore</strong><p>Web development, product design, civic ideas, climate action, and ways technology can make complicated things easier to use.</p></article></div><h2 className="section-heading">A few things I’m building</h2><div className="info-grid project-summary"><article><strong>Prottush OS</strong><p>A Windows 11-inspired interactive portfolio designed as a desktop you can explore.</p><span className="project-tag">Web · UI</span></article><article><strong>ShasthoLink</strong><p>A healthcare SaaS showcase concept focused on a patient dashboard, medical timeline, and a clearer health journey.</p><span className="project-tag">Product concept</span></article><article><strong>Cambrian Climate Club</strong><p>A student-led climate community website supporting awareness, activities, and collaboration.</p><span className="project-tag">Community · Climate</span></article><article><strong>Climate Chronicles</strong><p>A digital magazine experience in progress, exploring how student climate stories and publications can be presented online.</p><span className="project-tag">Editorial · Web</span></article></div><p className="callout">This profile uses project and role details already available. Public contact details, personal documents, dates, and other identifying information can be added only when you choose what to share.</p></section>;
   if (id === 'explorer') return <ExplorerApp openApp={openApp}/>;
@@ -319,7 +352,8 @@ function AppContent({ id, openApp, theme, setTheme, wallpaper, setWallpaper, acc
     <section className="settings-section" aria-labelledby="accent-heading"><div className="settings-section-heading"><h2 id="accent-heading">Accent colour</h2><span>03</span></div><p className="muted">Use a subtle highlight for active apps and selected controls.</p><div className="accent-options" role="group" aria-label="Accent colour">
       {[{id:'blue',name:'Blue',value:'#176bd2'},{id:'violet',name:'Violet',value:'#7955d9'},{id:'teal',name:'Teal',value:'#128779'},{id:'rose',name:'Rose',value:'#cc4f78'},{id:'amber',name:'Amber',value:'#b77916'}].map(option=><button key={option.id} className={'accent-option '+(accent===option.id?'selected':'')} aria-label={option.name+' accent'} aria-pressed={accent===option.id} title={option.name} onClick={()=>setAccent(option.id)} style={{'--swatch':option.value}}><span/></button>)}
     </div></section>
-    <p className="callout settings-note">Your theme, wallpaper, and accent are saved locally in this browser only. They do not change Secret Space or upload anything to the cloud.</p>
+    <section className="settings-section" aria-labelledby="settings-transfer-heading"><div className="settings-section-heading"><h2 id="settings-transfer-heading">Backup appearance settings</h2><span>04</span></div><p className="muted">Move your visual preferences to another browser using a small JSON file. Only theme, wallpaper, and accent are included.</p><div className="settings-transfer"><button type="button" className="settings-transfer-button" onClick={exportPreferences}><Download size={15}/> Export settings</button><label className="settings-transfer-button"><Upload size={15}/> Import settings<input type="file" accept="application/json,.json" onChange={importPreferences}/></label><button type="button" className="settings-transfer-button quiet" onClick={()=>{setTheme('light');setWallpaper('default');setAccent('blue');setSettingsMessage('Appearance settings reset to defaults.')}}>Reset appearance</button></div>{settingsMessage&&<p className="settings-message" role="status">{settingsMessage}</p>}</section>
+    <p className="callout settings-note">Your theme, wallpaper, and accent are saved locally in this browser only. Export files contain only those three validated preferences. Secret Space, credentials, tokens, window layout, and app contents are never included.</p>
   </section>;
   return null;
 }
