@@ -77,3 +77,13 @@ This roadmap is intentionally incremental: protect the working production build,
 - [x] Support Arrow Up/Down navigation and Enter to launch directly from search.
 - [x] Expose result selection and launcher controls with accessible labels and keyboard hints.
 - [x] Improve narrow-screen result layout; manual browser/mobile testing remains pending.
+
+
+## Upgrade 11 — Desktop context menus & shortcuts
+
+- [x] Add right-click menus for desktop icons and blank desktop space.
+- [x] Add a desktop refresh action that clears selection and dismisses menus without reloading open apps.
+- [x] Add a shortcut picker for supported apps and persist only app IDs in browser-local storage.
+- [x] Add quick access to Personalization from the desktop menu.
+- [x] Keep Secret Space excluded from the new-shortcut picker and do not persist any vault state.
+- [ ] Manually verify pointer, keyboard context-menu, and narrow-screen behavior after deployment.

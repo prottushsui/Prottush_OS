@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { apps, projectLinks } from './apps.js';
-import { Search, Power, Minus, Square, X, ChevronRight, Sun, Moon, Folder, FileText, Globe, Mail, Monitor, Terminal as TerminalIcon, ShieldCheck, Upload, Download, Trash2, LockKeyhole, RefreshCw, LogOut, HardDrive, AlertTriangle } from 'lucide-react';
+import { Search, Power, Minus, Square, X, ChevronRight, Sun, Moon, Folder, FileText, Globe, Mail, Monitor, Terminal as TerminalIcon, ShieldCheck, Upload, Download, Trash2, LockKeyhole, RefreshCw, LogOut, HardDrive, AlertTriangle, Plus, Settings2, Check } from 'lucide-react';
 
 const LAYOUT_STORAGE_KEY = 'prottush-os-layout-v1';
 
@@ -407,6 +407,16 @@ export default function App() {
   const [search,setSearch] = useState('');
   const [showAllApps,setShowAllApps] = useState(false);
   const [highlightedApp,setHighlightedApp] = useState(0);
+  const [selectedDesktopIcon,setSelectedDesktopIcon] = useState(null);
+  const [contextMenu,setContextMenu] = useState(null);
+  const [shortcutPickerOpen,setShortcutPickerOpen] = useState(false);
+  const [desktopNotice,setDesktopNotice] = useState('');
+  const [shortcutIds,setShortcutIds] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('prottush-os-desktop-shortcuts') || '[]');
+      return Array.isArray(saved) ? [...new Set(saved.filter(id => apps.some(item => item.id === id) && id !== 'vault'))] : [];
+    } catch { return []; }
+  });
   // Keep appearance preferences across reloads without making storage mandatory.
   const [theme,setTheme] = useState(() => {
     try { return localStorage.getItem('prottush-os-theme') === 'dark' ? 'dark' : 'light'; }
@@ -436,6 +446,15 @@ export default function App() {
     try { localStorage.setItem('prottush-os-accent', accent); } catch { /* Preferences remain usable when storage is unavailable. */ }
   }, [accent]);
 
+  useEffect(() => {
+    try { localStorage.setItem('prottush-os-desktop-shortcuts', JSON.stringify(shortcutIds)); }
+    catch { /* Shortcuts still work for this session when storage is unavailable. */ }
+  }, [shortcutIds]);
+  useEffect(() => {
+    if (!desktopNotice) return undefined;
+    const timer = window.setTimeout(() => setDesktopNotice(''), 2200);
+    return () => window.clearTimeout(timer);
+  }, [desktopNotice]);
   // Persist only window geometry and visibility state. App contents, vault passwords,
   // session tokens, and file data are never included in the saved desktop layout.
   useEffect(() => {
@@ -458,6 +477,34 @@ export default function App() {
     return () => window.clearInterval(timer);
   }, []);
   const [z,setZ] = useState(10);
+  const closeContextMenu = () => { setContextMenu(null); setShortcutPickerOpen(false); };
+  const showContextMenu = (event, targetId = null) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const menuWidth = 228;
+    const menuHeight = targetId ? 174 : 250;
+    const bounds = event.currentTarget?.getBoundingClientRect?.();
+    const pointerX = Number.isFinite(event.clientX) && event.clientX > 0 ? event.clientX : (bounds ? bounds.left + Math.min(bounds.width / 2, 90) : 16);
+    const pointerY = Number.isFinite(event.clientY) && event.clientY > 0 ? event.clientY : (bounds ? bounds.top + Math.min(bounds.height / 2, 40) : 16);
+    setContextMenu({
+      x: Math.max(8, Math.min(pointerX, window.innerWidth - menuWidth - 8)),
+      y: Math.max(8, Math.min(pointerY, window.innerHeight - menuHeight - 66)),
+      targetId,
+    });
+    setShortcutPickerOpen(false);
+    setStartOpen(false);
+  };
+  const refreshDesktop = () => {
+    setSelectedDesktopIcon(null);
+    closeContextMenu();
+    setDesktopNotice('Desktop refreshed');
+  };
+  const toggleDesktopShortcut = (id) => {
+    if (id === 'vault') return;
+    setShortcutIds(current => current.includes(id) ? current.filter(item => item !== id) : [...current, id]);
+    setDesktopNotice(shortcutIds.includes(id) ? 'Shortcut removed' : 'Shortcut added');
+    closeContextMenu();
+  };
   const openApp = (id) => {
     const nextZ=z+1; setZ(nextZ);
     setWindows(current=>({...current,[id]:current[id]?{...current[id],minimized:false,zIndex:nextZ}:{position:{x:startPosition.x+Object.keys(current).length*22,y:startPosition.y+Object.keys(current).length*18},maximized:false,minimized:false,zIndex:nextZ}}));
@@ -515,6 +562,11 @@ export default function App() {
       ));
 
       // Escape should always dismiss Start, including while its search field is focused.
+      if (event.key === 'Escape' && contextMenu) {
+        event.preventDefault();
+        closeContextMenu();
+        return;
+      }
       if (event.key === 'Escape' && startOpen) {
         event.preventDefault();
         setStartOpen(false);
@@ -544,11 +596,24 @@ export default function App() {
     };
     window.addEventListener('keydown', key);
     return () => window.removeEventListener('keydown', key);
-  }, [activeId, startOpen, z]);
-  return <main className={'desktop theme-'+theme+' wallpaper-'+wallpaper} style={{'--accent':accentColors[accent] || accentColors.blue}} onPointerDown={e=>{if(e.target===e.currentTarget)setStartOpen(false);}}>
+  }, [activeId, startOpen, z, contextMenu]);
+  return <main className={'desktop theme-'+theme+' wallpaper-'+wallpaper} style={{'--accent':accentColors[accent] || accentColors.blue}} onContextMenu={event=>{if(!event.target.closest('.window,.taskbar,.start-menu,.desktop-context-menu'))showContextMenu(event);}} onPointerDown={e=>{if(e.target===e.currentTarget){setStartOpen(false);setSelectedDesktopIcon(null);closeContextMenu();}}}>
     <div className="wallpaper-shape shape-one"/><div className="wallpaper-shape shape-two"/>
-    <div className="desktop-icons">{apps.filter(a=>['about','explorer','browser','resume','contact','vault'].includes(a.id)).map(a=>{const Icon=a.icon;return <button className="desktop-icon" key={a.id} onDoubleClick={()=>openApp(a.id)} onKeyDown={event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();openApp(a.id);}}} aria-label={"Open "+a.title}><span className={'icon-tile icon-'+a.id}><Icon size={25}/></span><span>{a.title}</span></button>})}</div>
-    <div className="welcome"><span>PERSONAL DESKTOP</span><h1>Good to see you.</h1><p>Double-click an icon to explore.</p></div>
+    <div className="desktop-icons" onContextMenu={event=>{if(event.target===event.currentTarget)showContextMenu(event);}}>{[...apps.filter(a=>['about','explorer','browser','resume','contact','vault'].includes(a.id)),...apps.filter(a=>shortcutIds.includes(a.id)&&!['about','explorer','browser','resume','contact','vault'].includes(a.id))].map(a=>{const Icon=a.icon;return <button className={'desktop-icon '+(selectedDesktopIcon===a.id?'desktop-icon-selected':'')} key={a.id} onClick={()=>setSelectedDesktopIcon(a.id)} onDoubleClick={()=>openApp(a.id)} onContextMenu={event=>showContextMenu(event,a.id)} onKeyDown={event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();openApp(a.id);}if(event.key==='ContextMenu'||(event.shiftKey&&event.key==='F10'))showContextMenu(event,a.id);}} aria-label={"Open "+a.title} aria-pressed={selectedDesktopIcon===a.id}><span className={'icon-tile icon-'+a.id}><Icon size={25}/></span><span>{a.title}</span></button>})}</div>
+    <div className="welcome"><span>PERSONAL DESKTOP</span><h1>Good to see you.</h1><p>Double-click an icon to explore. Right-click for options.</p></div>
+    {contextMenu&&<><button className="context-dismiss" aria-label="Close desktop context menu" onClick={closeContextMenu}/><section className="desktop-context-menu" role="menu" aria-label="Desktop options" style={{left:contextMenu.x,top:contextMenu.y}} onContextMenu={event=>event.preventDefault()}>
+      {contextMenu.targetId ? <>
+        <button role="menuitem" onClick={()=>{const id=contextMenu.targetId;closeContextMenu();openApp(id);}}><Folder size={15}/> Open <span>↵</span></button>
+        <button role="menuitem" onClick={()=>{closeContextMenu();openApp('settings');}}><Settings2 size={15}/> Personalize <span> </span></button>
+        {shortcutIds.includes(contextMenu.targetId)&&<button role="menuitem" onClick={()=>toggleDesktopShortcut(contextMenu.targetId)}><X size={15}/> Remove shortcut</button>}
+      </> : <>
+        <button role="menuitem" onClick={refreshDesktop}><RefreshCw size={15}/> Refresh desktop <span> </span></button>
+        <button role="menuitem" onClick={()=>{setShortcutPickerOpen(value=>!value);}}><Plus size={15}/> New shortcut <ChevronRight size={14}/></button>
+        {shortcutPickerOpen&&<div className="shortcut-picker" role="group" aria-label="Choose an app shortcut">{apps.filter(item=>item.id!=='vault'&&!['about','explorer','browser','resume','contact'].includes(item.id)&&!shortcutIds.includes(item.id)).map(item=><button key={item.id} onClick={()=>toggleDesktopShortcut(item.id)}><span className={'icon-tile icon-'+item.id}><item.icon size={16}/></span><span>{item.title}</span><Plus size={13}/></button>)}{apps.filter(item=>item.id!=='vault'&&!['about','explorer','browser','resume','contact'].includes(item.id)&&!shortcutIds.includes(item.id)).length===0&&<p>All available shortcuts are already on the desktop.</p>}</div>}
+        <button role="menuitem" onClick={()=>{closeContextMenu();openApp('settings');}}><Monitor size={15}/> Personalize <span> </span></button>
+      </>}
+    </section></>}
+    {desktopNotice&&<div className="desktop-notice" role="status">{desktopNotice}</div>}
     {visible.map(([id,state])=>{const app=apps.find(a=>a.id===id);return <WindowFrame key={id} app={app} state={state} active={activeId===id} onFocus={()=>focusApp(id)} onClose={()=>closeApp(id)} onMinimize={()=>minimizeApp(id)} onMaximize={()=>toggleMaximize(id)} onMove={pos=>moveWindow(id,pos)} onResize={geometry=>resizeWindow(id,geometry)} onDragStart={()=>startWindowDrag(id)} onSnap={side=>snapWindow(id,side)}><AppContent id={id} openApp={openApp} theme={theme} setTheme={setTheme} wallpaper={wallpaper} setWallpaper={setWallpaper} accent={accent} setAccent={setAccent}/></WindowFrame>})}
     {startOpen&&<><button className="dismiss" aria-label="Dismiss Start menu" onClick={()=>setStartOpen(false)}/><section className="start-menu" role="dialog" aria-label="Start menu"><label className="start-search"><Search size={16}/><input autoFocus value={search} aria-label="Search apps by name, description, or category" aria-controls="start-app-results" aria-keyshortcuts="ArrowDown ArrowUp Enter" onChange={e=>{setSearch(e.target.value);setHighlightedApp(0);}} onKeyDown={event=>{if(event.key==='ArrowDown'){event.preventDefault();setHighlightedApp(index=>Math.min(index+1,Math.max(0,displayedApps.length-1)));}else if(event.key==='ArrowUp'){event.preventDefault();setHighlightedApp(index=>Math.max(0,index-1));}else if(event.key==='Enter'){event.preventDefault();launchHighlightedApp();}}} placeholder="Search apps, descriptions, categories…"/></label><div className="start-heading"><b>{query?'Search results':showAllApps?'All apps':'Pinned'}</b><button className="start-view-toggle" onClick={()=>{setShowAllApps(value=>!value);setHighlightedApp(0);}}>{showAllApps?'Pinned':'All apps'} <ChevronRight size={12}/></button></div><div className="start-grid" id="start-app-results" role="listbox" aria-label={query?'Search results':showAllApps?'All apps':'Pinned apps'}>{displayedApps.map((a,index)=>{const Icon=a.icon;return <button key={a.id} role="option" aria-selected={highlightedApp===index} className={highlightedApp===index?'app-result highlighted':'app-result'} onMouseEnter={()=>setHighlightedApp(index)} onClick={()=>openApp(a.id)}><span className={'icon-tile icon-'+a.id}><Icon size={22}/></span><span className="app-result-copy"><small>{a.title}</small><em>{a.subtitle}</em></span></button>})}{displayedApps.length===0&&<p className="start-empty">No apps match “{search}”. Try a name like Settings or Explorer.</p>}</div><p className="start-hint"><kbd>↑</kbd><kbd>↓</kbd> navigate <kbd>Enter</kbd> open <kbd>Esc</kbd> close</p><footer><span className="profile-mini">P.</span><b>Prottush</b><button aria-label="Close Start menu" onClick={()=>setStartOpen(false)}><Power size={16}/></button></footer></section></>}
     <footer className="taskbar"><div className="weather"><span>☀</span><div><b>Clear skies</b><small>Make today count</small></div></div><div className="taskbar-center"><button className="task-icon windows-logo" aria-label="Start menu" aria-expanded={startOpen} onClick={()=>setStartOpen(v=>!v)}><span>▦</span></button>{[...new Set([...Object.keys(windows)])].map(id=>{const a=apps.find(app=>app.id===id);const Icon=a.icon;return <button key={id} className={'task-icon '+(activeId===id?'task-active':'')} title={a.title} aria-label={(windows[id].minimized?'Restore ':activeId===id?'Minimize ':'Focus ')+a.title} aria-pressed={activeId===id&&!windows[id].minimized} onClick={()=>windows[id].minimized?openApp(id):activeId===id?minimizeApp(id):focusApp(id)}><Icon size={19}/></button>})}<button className="task-icon" title="Search" aria-label="Open app search" onClick={()=>setStartOpen(true)}><Search size={18}/></button></div><div className="system-tray"><span>⌃</span><span>◖</span><span>◕</span><time>{clock.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</time><time>{clock.toLocaleDateString([], {month:'numeric',day:'numeric',year:'numeric'})}</time></div></footer>
