@@ -11,6 +11,7 @@ npm install
 npm run dev
 npm test
 npm run build
+npm run test:e2e
 ```
 
 ## Project map
@@ -36,6 +37,7 @@ src/
 ## Quality checks
 
 - `npm test` runs dependency-free Node.js tests for preference import validation.
+- `npm run test:e2e` runs Playwright browser smoke tests; install `@playwright/test` and Chromium first.
 - GitHub Actions runs the test suite and production build on pull requests and pushes to `main`.
 - A successful build does not replace manual keyboard, assistive-technology, browser, and mobile testing.
 

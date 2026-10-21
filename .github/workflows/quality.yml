@@ -25,3 +25,9 @@ jobs:
         run: npm test
       - name: Build production bundle
         run: npm run build
+      - name: Install Playwright and Chromium
+        run: |
+          npm install --no-save @playwright/test
+          npx playwright install --with-deps chromium
+      - name: Run browser interaction tests
+        run: npm run test:e2e

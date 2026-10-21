@@ -134,17 +134,17 @@ This is a planning backlog, not a claim that these features already exist. Ship 
 
 ### Phase 6 — Quality gates and diagnostics (21–25)
 
-- [ ] **Upgrade 21 — Baseline build and test gate:** document the package manager and existing scripts; make the production build and available lint/type checks repeatable before merges.
-- [ ] **Upgrade 22 — Core interaction smoke tests:** cover app launch, close, minimize/restore, Start/search, Settings, and taskbar state with the test tooling the repository already supports.
-- [ ] **Upgrade 23 — Keyboard regression suite:** verify shortcut handling, editable-field protection, Escape dismissal, focus handoff, and keyboard-only access.
-- [ ] **Upgrade 24 — Responsive viewport checks:** add a practical viewport matrix for desktop, tablet, and narrow mobile; catch overflow and unreachable controls.
+- [x] **Upgrade 21 — Baseline build and test gate:** add a GitHub Actions workflow for unit tests, production build, and Chromium browser smoke tests on pull requests and pushes to `main`.
+- [x] **Upgrade 22 — Core interaction smoke tests:** Playwright covers Start/search, Settings, terminal, quick settings, app launch, minimize/restore, close, and settings export.
+- [ ] **Upgrade 23 — Keyboard regression suite:** initial tests cover Escape dismissal and shortcut protection while Start search is focused; focus restoration, full keyboard-only operation, and screen-reader review remain.
+- [ ] **Upgrade 24 — Responsive viewport checks:** Playwright checks desktop/tablet/mobile shell visibility and Start bounds; full overflow, touch, and device testing remains.
 - [ ] **Upgrade 25 — Runtime diagnostics checklist:** document how to inspect browser-console errors, failed requests, and Vercel build/runtime logs; fix observed issues rather than adding a pretend diagnostics screen.
 
 ### Phase 7 — Desktop usability (26–30)
 
 - [ ] **Upgrade 26 — Window snapping and tiling polish:** inspect existing behavior first; improve half-screen placement, viewport bounds, and small-screen fallback without regressing resizing.
 - [ ] **Upgrade 27 — Taskbar overflow and app grouping:** keep open apps reachable at narrow widths and make active/minimized states understandable.
-- [ ] **Upgrade 28 — Desktop layout recovery:** provide a safe reset-to-default layout action with confirmation; preserve unrelated app data and theme preferences.
+- [x] **Upgrade 28 — Desktop layout recovery:** add a confirmed reset for open window layout that preserves appearance preferences, desktop shortcuts, and Secret Space.
 - [ ] **Upgrade 29 — Search quality pass:** improve empty states, result ranking, keyboard selection, and clear-query behavior without inventing results.
 - [ ] **Upgrade 30 — Consistent loading, empty, and error states:** standardize feedback across apps, including honest messages when a feature is a mock or a service is unavailable.
 
@@ -175,8 +175,8 @@ This is a planning backlog, not a claim that these features already exist. Ship 
 ### Phase 11 — Optional capability extensions (46–50)
 
 - [ ] **Upgrade 46 — Import/export of public desktop preferences:** allow users to export/import only a validated, versioned allowlist of non-sensitive settings; exclude window contents, credentials, tokens, and vault data.
-- [ ] **Upgrade 47 — Local help and onboarding:** add a concise first-run tour/help surface that can be dismissed and reopened, without blocking normal use.
-- [ ] **Upgrade 48 — Terminal honesty and utility:** improve the simulated terminal's help and supported commands, clearly state that it is not a real shell, and never execute arbitrary commands.
+- [x] **Upgrade 47 — Local help and onboarding:** add a Help & tips app that can be opened from Start without blocking normal use.
+- [x] **Upgrade 48 — Terminal honesty and utility:** add an allowlisted simulated prompt and clearly state that arbitrary shell/OS commands are never executed.
 - [ ] **Upgrade 49 — Cross-browser compatibility pass:** verify supported browsers and graceful fallbacks for local storage, CSS effects, keyboard behavior, and date/time formatting.
 - [ ] **Upgrade 50 — Release acceptance and product review:** run the accumulated build, interaction, accessibility, responsive, privacy, and deployment checks; publish a verified change log and a short list of known limitations.
 
@@ -205,9 +205,10 @@ The first implementation batch establishes foundations and ships selected low-ri
 
 ### Still required before calling the entire 21–50 programme complete
 - [ ] Run and verify the CI workflow on the proposed branch/PR and confirm the Vercel production deployment after merge.
-- [ ] Add real browser-driven tests for window lifecycle, Start/search, shortcuts, focus restoration, and touch/pointer behavior.
+- [x] Add browser-driven Chromium tests for window lifecycle, Start/search, Settings export privacy, shortcuts, quick settings, terminal allowlisting, layout reset, and responsive shell basics.
+- [ ] Complete keyboard-only, focus restoration, screen-reader, touch/pointer, contrast, zoom, and full mobile overflow testing.
 - [ ] Manually test keyboard-only operation, screen-reader announcements, contrast, zoom, and mobile layouts.
-- [ ] Complete the remaining desktop usability, accessibility, portfolio-content, dependency/security, performance, onboarding, terminal-utility, cross-browser, and release-acceptance items listed above.
+- [ ] Complete the remaining desktop usability, accessibility, portfolio-content, dependency/security, performance, cross-browser, and release-acceptance items listed above.
 - [ ] Review external project links and production logs with evidence before declaring them verified.
 
 This is a partial implementation of upgrades 21–50, not a claim that all thirty upgrades are finished. Keep the remaining checklist open until each item is implemented and verified.
