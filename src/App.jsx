@@ -302,7 +302,7 @@ function ExplorerApp({ openApp }) {
   </section>;
 }
 
-function AppContent({ id, openApp, theme, setTheme }) {
+function AppContent({ id, openApp, theme, setTheme, wallpaper, setWallpaper, accent, setAccent }) {
   if (id === 'vault') return <VaultApp/>;
   if (id === 'about') return <section className="page about"><div className="profile-mark">P.</div><p className="eyebrow">USER PROFILE</p><h1>Hey, I’m Prottush.</h1><p className="muted">Student · Builder · Climate advocate</p><p className="about-intro">I like turning ideas into useful, thoughtful projects — from digital experiences to student-led initiatives. I’m especially interested in the intersection of technology, community, and positive change.</p><div className="info-grid"><article><strong>Community</strong><p>Secretary of Publicity at Cambrian Climate Club, contributing to climate awareness, student collaboration, and youth-led initiatives.</p></article><article><strong>What I explore</strong><p>Web development, product design, civic ideas, climate action, and ways technology can make complicated things easier to use.</p></article></div><h2 className="section-heading">A few things I’m building</h2><div className="info-grid project-summary"><article><strong>Prottush OS</strong><p>A Windows 11-inspired interactive portfolio designed as a desktop you can explore.</p><span className="project-tag">Web · UI</span></article><article><strong>ShasthoLink</strong><p>A healthcare SaaS showcase concept focused on a patient dashboard, medical timeline, and a clearer health journey.</p><span className="project-tag">Product concept</span></article><article><strong>Cambrian Climate Club</strong><p>A student-led climate community website supporting awareness, activities, and collaboration.</p><span className="project-tag">Community · Climate</span></article><article><strong>Climate Chronicles</strong><p>A digital magazine experience in progress, exploring how student climate stories and publications can be presented online.</p><span className="project-tag">Editorial · Web</span></article></div><p className="callout">This profile uses project and role details already available. Public contact details, personal documents, dates, and other identifying information can be added only when you choose what to share.</p></section>;
   if (id === 'explorer') return <ExplorerApp openApp={openApp}/>;
@@ -310,7 +310,17 @@ function AppContent({ id, openApp, theme, setTheme }) {
   if (id === 'resume') return <section className="page"><div className="doc-head"><FileText size={34}/><div><p className="eyebrow">DOCUMENTS</p><h1>CV & records</h1><p className="muted">Public-safe documents will appear here.</p></div></div>{[{title:'Curriculum Vitae',desc:'Add your latest CV to public/documents and link it here.'},{title:'School records',desc:'Only include documents you intend to make public.'},{title:'Certificates & recognition',desc:'A curated list of achievements and certificates.'}].map(d=><div className="file-row" key={d.title}><FileText/><div><b>{d.title}</b><small>{d.desc}</small></div><span className="file-type">FILE</span></div>)}<p className="callout">No private student records should be published. Add only files you explicitly want visitors to access.</p></section>;
   if (id === 'contact') return <section className="page"><div className="contact-mark"><Mail/></div><p className="eyebrow">LET’S CONNECT</p><h1>Get in touch.</h1><p className="muted">For collaborations, projects, or a thoughtful conversation.</p><a className="contact-row" href="https://github.com/prottushsui" target="_blank" rel="noreferrer"><Globe/><span><b>GitHub</b><small>github.com/prottushsui</small></span><ChevronRight/></a><p className="callout">Add a public contact email or preferred social link when you are ready.</p></section>;
   if (id === 'terminal') return <section className="terminal"><div><i/> <i/> <i/> <span>PowerShell</span></div><p>Windows PowerShell</p><p>Copyright (C) Microsoft Corporation. All rights reserved.</p><br/><p>PS C:\Users\Prottush&gt; <span className="terminal-caret">_</span></p><p className="terminal-muted">This is a visual portfolio terminal, not a real shell.</p></section>;
-  if (id === 'settings') return <section className="page"><div className="doc-head"><Monitor size={34}/><div><p className="eyebrow">SYSTEM</p><h1>Personalization</h1><p className="muted">Choose your desktop appearance.</p></div></div><div className="theme-row"><button className={theme==='light'?'theme-choice selected':'theme-choice'} onClick={()=>setTheme('light')}><Sun/>Light</button><button className={theme==='dark'?'theme-choice selected':'theme-choice'} onClick={()=>setTheme('dark')}><Moon/>Dark</button></div><p className="callout">Your appearance preference is saved in this browser and will be remembered on your next visit.</p></section>;
+  if (id === 'settings') return <section className="page settings-page">
+    <div className="doc-head"><Monitor size={34}/><div><p className="eyebrow">SYSTEM</p><h1>Personalization</h1><p className="muted">Make this desktop feel like yours.</p></div></div>
+    <section className="settings-section" aria-labelledby="appearance-heading"><div className="settings-section-heading"><h2 id="appearance-heading">Appearance</h2><span>01</span></div><p className="muted">Choose a light or dark window and taskbar treatment.</p><div className="theme-row"><button className={theme==='light'?'theme-choice selected':'theme-choice'} aria-pressed={theme==='light'} onClick={()=>setTheme('light')}><Sun size={18}/>Light</button><button className={theme==='dark'?'theme-choice selected':'theme-choice'} aria-pressed={theme==='dark'} onClick={()=>setTheme('dark')}><Moon size={18}/>Dark</button></div></section>
+    <section className="settings-section" aria-labelledby="wallpaper-heading"><div className="settings-section-heading"><h2 id="wallpaper-heading">Desktop wallpaper</h2><span>02</span></div><p className="muted">Pick a backdrop. It applies instantly and stays saved in this browser.</p><div className="wallpaper-options">
+      {[{id:'default',name:'Windows blue',detail:'Soft blue glass'},{id:'aurora',name:'Aurora',detail:'Northern lights'},{id:'sunset',name:'Sunset',detail:'Warm dusk'},{id:'forest',name:'Forest',detail:'Deep green'},{id:'midnight',name:'Midnight',detail:'Indigo night'}].map(option=><button key={option.id} className={'wallpaper-option '+(wallpaper===option.id?'selected':'')} aria-pressed={wallpaper===option.id} onClick={()=>setWallpaper(option.id)}><span className={'wallpaper-preview wallpaper-preview-'+option.id}><i/><i/></span><span className="wallpaper-option-copy"><b>{option.name}</b><small>{option.detail}</small></span><span className="wallpaper-check" aria-hidden="true">{wallpaper===option.id?'✓':''}</span></button>)}
+    </div></section>
+    <section className="settings-section" aria-labelledby="accent-heading"><div className="settings-section-heading"><h2 id="accent-heading">Accent colour</h2><span>03</span></div><p className="muted">Use a subtle highlight for active apps and selected controls.</p><div className="accent-options" role="group" aria-label="Accent colour">
+      {[{id:'blue',name:'Blue',value:'#176bd2'},{id:'violet',name:'Violet',value:'#7955d9'},{id:'teal',name:'Teal',value:'#128779'},{id:'rose',name:'Rose',value:'#cc4f78'},{id:'amber',name:'Amber',value:'#b77916'}].map(option=><button key={option.id} className={'accent-option '+(accent===option.id?'selected':'')} aria-label={option.name+' accent'} aria-pressed={accent===option.id} title={option.name} onClick={()=>setAccent(option.id)} style={{'--swatch':option.value}}><span/></button>)}
+    </div></section>
+    <p className="callout settings-note">Your theme, wallpaper, and accent are saved locally in this browser only. They do not change Secret Space or upload anything to the cloud.</p>
+  </section>;
   return null;
 }
 
@@ -400,10 +410,29 @@ export default function App() {
     try { return localStorage.getItem('prottush-os-theme') === 'dark' ? 'dark' : 'light'; }
     catch { return 'light'; }
   });
+  const [wallpaper,setWallpaper] = useState(() => {
+    try {
+      const saved = localStorage.getItem('prottush-os-wallpaper');
+      return ['default','aurora','sunset','forest','midnight'].includes(saved) ? saved : 'default';
+    } catch { return 'default'; }
+  });
+  const [accent,setAccent] = useState(() => {
+    try {
+      const saved = localStorage.getItem('prottush-os-accent');
+      return ['blue','violet','teal','rose','amber'].includes(saved) ? saved : 'blue';
+    } catch { return 'blue'; }
+  });
+  const accentColors = { blue:'#176bd2', violet:'#7955d9', teal:'#128779', rose:'#cc4f78', amber:'#b77916' };
   const [clock,setClock] = useState(() => new Date());
   useEffect(() => {
     try { localStorage.setItem('prottush-os-theme', theme); } catch { /* Storage may be unavailable in private contexts. */ }
   }, [theme]);
+  useEffect(() => {
+    try { localStorage.setItem('prottush-os-wallpaper', wallpaper); } catch { /* Preferences remain usable when storage is unavailable. */ }
+  }, [wallpaper]);
+  useEffect(() => {
+    try { localStorage.setItem('prottush-os-accent', accent); } catch { /* Preferences remain usable when storage is unavailable. */ }
+  }, [accent]);
 
   // Persist only window geometry and visibility state. App contents, vault passwords,
   // session tokens, and file data are never included in the saved desktop layout.
@@ -507,11 +536,11 @@ export default function App() {
     window.addEventListener('keydown', key);
     return () => window.removeEventListener('keydown', key);
   }, [activeId, startOpen, z]);
-  return <main className={'desktop theme-'+theme} onPointerDown={e=>{if(e.target===e.currentTarget)setStartOpen(false);}}>
+  return <main className={'desktop theme-'+theme+' wallpaper-'+wallpaper} style={{'--accent':accentColors[accent] || accentColors.blue}} onPointerDown={e=>{if(e.target===e.currentTarget)setStartOpen(false);}}>
     <div className="wallpaper-shape shape-one"/><div className="wallpaper-shape shape-two"/>
     <div className="desktop-icons">{apps.filter(a=>['about','explorer','browser','resume','contact','vault'].includes(a.id)).map(a=>{const Icon=a.icon;return <button className="desktop-icon" key={a.id} onDoubleClick={()=>openApp(a.id)} onKeyDown={event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();openApp(a.id);}}} aria-label={"Open "+a.title}><span className={'icon-tile icon-'+a.id}><Icon size={25}/></span><span>{a.title}</span></button>})}</div>
     <div className="welcome"><span>PERSONAL DESKTOP</span><h1>Good to see you.</h1><p>Double-click an icon to explore.</p></div>
-    {visible.map(([id,state])=>{const app=apps.find(a=>a.id===id);return <WindowFrame key={id} app={app} state={state} active={activeId===id} onFocus={()=>focusApp(id)} onClose={()=>closeApp(id)} onMinimize={()=>minimizeApp(id)} onMaximize={()=>toggleMaximize(id)} onMove={pos=>moveWindow(id,pos)} onResize={geometry=>resizeWindow(id,geometry)} onDragStart={()=>startWindowDrag(id)} onSnap={side=>snapWindow(id,side)}><AppContent id={id} openApp={openApp} theme={theme} setTheme={setTheme}/></WindowFrame>})}
+    {visible.map(([id,state])=>{const app=apps.find(a=>a.id===id);return <WindowFrame key={id} app={app} state={state} active={activeId===id} onFocus={()=>focusApp(id)} onClose={()=>closeApp(id)} onMinimize={()=>minimizeApp(id)} onMaximize={()=>toggleMaximize(id)} onMove={pos=>moveWindow(id,pos)} onResize={geometry=>resizeWindow(id,geometry)} onDragStart={()=>startWindowDrag(id)} onSnap={side=>snapWindow(id,side)}><AppContent id={id} openApp={openApp} theme={theme} setTheme={setTheme} wallpaper={wallpaper} setWallpaper={setWallpaper} accent={accent} setAccent={setAccent}/></WindowFrame>})}
     {startOpen&&<><button className="dismiss" aria-label="Dismiss Start menu" onClick={()=>setStartOpen(false)}/><section className="start-menu" role="dialog" aria-label="Start menu"><label className="start-search"><Search size={16}/><input autoFocus value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search for apps, settings, and documents"/></label><div className="start-heading"><b>{search?'Search results':'Pinned'}</b><span>All apps　›</span></div><div className="start-grid">{filtered.map(a=>{const Icon=a.icon;return <button key={a.id} onClick={()=>openApp(a.id)}><span className={'icon-tile icon-'+a.id}><Icon size={22}/></span><small>{a.title}</small></button>})}</div><footer><span className="profile-mini">P.</span><b>Prottush</b><button aria-label="Close Start menu" onClick={()=>setStartOpen(false)}><Power size={16}/></button></footer></section></>}
     <footer className="taskbar"><div className="weather"><span>☀</span><div><b>Clear skies</b><small>Make today count</small></div></div><div className="taskbar-center"><button className="task-icon windows-logo" aria-label="Start menu" aria-expanded={startOpen} onClick={()=>setStartOpen(v=>!v)}><span>▦</span></button>{[...new Set([...Object.keys(windows)])].map(id=>{const a=apps.find(app=>app.id===id);const Icon=a.icon;return <button key={id} className={'task-icon '+(activeId===id?'task-active':'')} title={a.title} aria-label={(windows[id].minimized?'Restore ':activeId===id?'Minimize ':'Focus ')+a.title} aria-pressed={activeId===id&&!windows[id].minimized} onClick={()=>windows[id].minimized?openApp(id):activeId===id?minimizeApp(id):focusApp(id)}><Icon size={19}/></button>})}<button className="task-icon" title="Search" aria-label="Open app search" onClick={()=>setStartOpen(true)}><Search size={18}/></button></div><div className="system-tray"><span>⌃</span><span>◖</span><span>◕</span><time>{clock.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</time><time>{clock.toLocaleDateString([], {month:'numeric',day:'numeric',year:'numeric'})}</time></div></footer>
   </main>;
