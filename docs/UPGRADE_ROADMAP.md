@@ -188,3 +188,26 @@ This is a planning backlog, not a claim that these features already exist. Ship 
 - Any proposed nonzero-cost service or infrastructure change must be priced and presented for explicit approval before proceeding.
 - Secret Space/vault work is intentionally not bundled into upgrades 21–50. Treat authentication, authorization, data exposure, and destructive wipe changes as a separately scoped security review with explicit approval.
 - A successful build or READY deployment is not proof of manual interaction, assistive-technology, or cross-device testing. Record each verification separately.
+
+
+## Upgrade batch 21–50 — implementation status
+
+The first implementation batch establishes foundations and ships selected low-risk capabilities. This status is intentionally evidence-based; items below are not marked complete merely because they were included in the plan.
+
+### Shipped in this batch
+- [x] **Upgrade 21 — Baseline build and test gate:** add a GitHub Actions workflow that installs dependencies, runs `npm test`, and builds the production bundle on pull requests and pushes to `main`. Workflow execution still needs to report green before this gate is considered verified.
+- [x] **Upgrade 40 — Metadata and sharing previews:** add Open Graph title/description, a theme color, color-scheme hint, and crawl directives.
+- [x] **Upgrade 41 — Error recovery:** add a React error boundary with a reload path and browser-console diagnostics; no error payloads are sent to a service.
+- [x] **Upgrade 46 — Import/export of public desktop preferences:** add a versioned JSON format containing only validated theme, wallpaper, and accent values. Import rejects malformed, oversized, unsupported, or invalid values.
+- [x] **Upgrade 42 — Preference validation coverage:** add dependency-free Node tests for the allowlisted appearance-preference schema, malformed imports, unsupported versions, and oversized files.
+- [x] **Upgrade 49 — Reduced-motion fallback:** honor the operating-system `prefers-reduced-motion` media preference in CSS, in addition to the in-app toggle.
+- [x] **Documentation — Quality workflow:** document `npm test`, the CI build, and the distinction between automated checks and manual testing.
+
+### Still required before calling the entire 21–50 programme complete
+- [ ] Run and verify the CI workflow on the proposed branch/PR and confirm the Vercel production deployment after merge.
+- [ ] Add real browser-driven tests for window lifecycle, Start/search, shortcuts, focus restoration, and touch/pointer behavior.
+- [ ] Manually test keyboard-only operation, screen-reader announcements, contrast, zoom, and mobile layouts.
+- [ ] Complete the remaining desktop usability, accessibility, portfolio-content, dependency/security, performance, onboarding, terminal-utility, cross-browser, and release-acceptance items listed above.
+- [ ] Review external project links and production logs with evidence before declaring them verified.
+
+This is a partial implementation of upgrades 21–50, not a claim that all thirty upgrades are finished. Keep the remaining checklist open until each item is implemented and verified.
