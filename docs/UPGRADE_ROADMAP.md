@@ -17,7 +17,7 @@ This roadmap is intentionally incremental: protect the working production build,
 - [ ] Test open, focus, minimize, restore, close, snap, and maximize across multiple windows.
 - [x] Add desktop window resize handles with minimum dimensions and viewport bounds.
 - [x] Hand focus to the highest remaining visible window when the active window is minimized or closed.
-- [ ] Test keyboard access, reduced motion, and narrow viewport behavior.
+- [x] Add keyboard activation for desktop icons, explicit labels for taskbar/window controls, visible focus states, and reduced-motion handling (manual assistive-technology testing still pending).
 
 ## Phase 2 — Personal workspace
 
