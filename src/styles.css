@@ -90,7 +90,6 @@
 button,a,input,select,textarea,[tabindex]:not([tabindex="-1"]){-webkit-tap-highlight-color:transparent}
 button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex]:not([tabindex="-1"]):focus-visible{outline:3px solid #075fc4;outline-offset:3px;box-shadow:0 0 0 2px #fff}
 .theme-dark button:focus-visible,.theme-dark a:focus-visible,.theme-dark input:focus-visible,.theme-dark select:focus-visible,.theme-dark textarea:focus-visible,.theme-dark [tabindex]:not([tabindex="-1"]):focus-visible{outline-color:#8fc5ff;box-shadow:0 0 0 2px #152235}
-.window[aria-hidden="true"]{pointer-events:none}
 .titlebar{touch-action:pan-y}
 .window-controls button:focus-visible{position:relative;z-index:2}
 .desktop-icon:focus-visible{background:rgba(255,255,255,.48);border-color:rgba(30,105,190,.65)}
