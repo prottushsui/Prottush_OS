@@ -37,7 +37,7 @@ This roadmap is intentionally incremental: protect the working production build,
 ## Phase 4 — System utilities
 
 - [x] Expand Settings with five wallpapers, light/dark theme, and five accent colours; persist preferences locally in the current browser.
-- [ ] Add keyboard-navigable app search and launcher behavior.
+- [x] Add keyboard-navigable app search and launcher behavior.
 - [x] Keep personalization client-side only; do not add infrastructure, cloud sync, or vault coupling.
 - [ ] Improve Terminal mock-up and system information without implying real shell access.
 - [ ] Add useful quick settings and notifications only where they improve the experience.
@@ -68,3 +68,12 @@ This roadmap is intentionally incremental: protect the working production build,
 - [x] Persist theme, wallpaper, and accent in separate local browser keys with safe fallbacks.
 - [x] Keep the vault and backend untouched; preferences are not uploaded or synced.
 - [ ] Verify settings interactions manually on desktop and mobile after deployment.
+
+
+## Upgrade 10 — Start menu & app search
+
+- [x] Separate a curated pinned view from the complete app list.
+- [x] Search app names, descriptions, and categories with a useful no-results state.
+- [x] Support Arrow Up/Down navigation and Enter to launch directly from search.
+- [x] Expose result selection and launcher controls with accessible labels and keyboard hints.
+- [x] Improve narrow-screen result layout; manual browser/mobile testing remains pending.
