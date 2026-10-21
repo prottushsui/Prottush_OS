@@ -146,3 +146,20 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .theme-dark .wallpaper-preview-default{background:linear-gradient(130deg,#182d46,#253d59 50%,#101a2a)}
 .theme-dark .settings-note{background:#142b43;color:#bdd6ef;border-color:#284f76}
 @media(max-width:520px){.wallpaper-options{grid-template-columns:repeat(2,minmax(0,1fr))}.wallpaper-preview{height:58px}.settings-page{padding:20px 17px}}
+
+
+/* Upgrade 10 — searchable, keyboard-navigable Start launcher. */
+.start-view-toggle{display:inline-flex;align-items:center;gap:3px;border:0;border-radius:5px;padding:4px 6px;background:transparent;color:var(--accent,#176bd2);font:inherit;font-size:10px;cursor:pointer}
+.start-view-toggle:hover{background:#dce9f8}
+.start-grid .app-result{min-width:0;min-height:90px;justify-content:flex-start;padding:10px 6px;gap:7px}
+.start-grid .app-result:hover,.start-grid .app-result.highlighted,.start-grid .app-result[aria-selected="true"]{background:#dce9f8;border-color:#c2d9f4;outline:none}
+.app-result-copy{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0;width:100%}
+.app-result-copy small{font-size:10px;text-align:center;font-weight:600}
+.app-result-copy em{font-size:9px;font-style:normal;color:#63758a;text-align:center;line-height:1.35;overflow-wrap:anywhere}
+.start-empty{grid-column:1/-1;margin:0;padding:20px 8px;text-align:center;color:#66788b;font-size:11px;line-height:1.5}
+.start-hint{display:flex;align-items:center;justify-content:center;gap:5px;margin:12px 0 0;color:#6b7b8d;font-size:9px}
+.start-hint kbd{display:inline-grid;place-items:center;min-width:17px;height:17px;padding:0 3px;border:1px solid #b9c6d5;border-radius:4px;background:#ffffff9c;color:#3d5065;font:inherit}
+.theme-dark .start-grid .app-result:hover,.theme-dark .start-grid .app-result.highlighted,.theme-dark .start-grid .app-result[aria-selected="true"]{background:#31465f;border-color:#476789}
+.theme-dark .app-result-copy em,.theme-dark .start-empty,.theme-dark .start-hint{color:#b7c7d9}
+.theme-dark .start-view-toggle{color:#a6ccff}
+@media(max-width:520px){.start-menu{padding:16px 16px 0}.start-grid{grid-template-columns:repeat(2,minmax(0,1fr));max-height:44vh;overflow-y:auto}.start-menu footer{margin:14px -16px 0;padding:10px 16px}.start-heading{margin-top:16px}.start-grid .app-result{min-height:78px}}
