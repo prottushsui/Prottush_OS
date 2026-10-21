@@ -97,3 +97,23 @@ test('viewport resizing keeps core shell controls available', async ({ page }) =
     await expect(page.getByRole('button', { name: 'Start menu' })).toBeVisible();
   }
 });
+
+test('keyboard shortcuts do not hijack editable search fields', async ({ page }) => {
+  await openStart(page);
+  const search = page.getByRole('textbox', { name: 'Search apps by name, description, or category' });
+  await search.focus();
+  await page.keyboard.press('Alt+Shift+E');
+  await expect(page.getByRole('dialog', { name: 'Start menu' })).toBeVisible();
+  await expect(page.getByRole('group', { name: 'File Explorer' })).toHaveCount(0);
+});
+
+test('reset window layout requires confirmation and preserves the desktop shell', async ({ page }) => {
+  await launchFromStart(page, 'Terminal');
+  await expect(page.getByRole('group', { name: 'Terminal' })).toBeVisible();
+  page.once('dialog', dialog => dialog.accept());
+  await page.locator('main.desktop').click({ button: 'right', position: { x: 1000, y: 500 } });
+  await page.getByRole('menuitem', { name: 'Reset window layout' }).click();
+  await expect(page.getByRole('group', { name: 'Terminal' })).toHaveCount(0);
+  await expect(page.locator('main.desktop')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Start menu' })).toBeVisible();
+});
