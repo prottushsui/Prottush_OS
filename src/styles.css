@@ -190,3 +190,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .theme-dark .desktop-notice{background:#243a52ed;border-color:#47617d;color:#e3efff}
 @media(max-width:720px){.desktop-context-menu{width:min(228px,calc(100vw - 16px));max-height:calc(100dvh - 78px)}.desktop-notice{bottom:66px}}
 @media(prefers-reduced-motion:reduce){.desktop-context-menu,.desktop-notice{animation:none!important}}
+
+/* Upgrade 12 — window state indicators and a dedicated Show desktop affordance. */
+.task-icon{isolation:isolate}.task-icon[data-window-state="open"]:after,.task-icon[data-window-state="minimized"]:after{content:"";position:absolute;bottom:2px;width:4px;height:4px;border-radius:50%;background:var(--accent);opacity:.75}.task-icon[data-window-state="active"]:after{content:"";position:absolute;bottom:2px;width:16px;height:3px;border-radius:4px;background:var(--accent)}.task-icon.task-minimized{opacity:.78}.show-desktop{align-self:stretch;flex:0 0 7px;margin-left:7px;border:0;border-left:1px solid #8394a84d;background:transparent;cursor:pointer}.show-desktop:hover,.show-desktop:focus-visible{background:#7ca8d42b;outline-offset:-2px}.theme-dark .show-desktop{border-left-color:#9aaec44d}
+@media(max-width:720px){.show-desktop{flex-basis:5px;margin-left:4px}.taskbar{padding-right:5px}}
