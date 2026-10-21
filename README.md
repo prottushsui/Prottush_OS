@@ -9,6 +9,7 @@ Requires Node.js 20.19+ or 22.12+.
 ```bash
 npm install
 npm run dev
+npm test
 npm run build
 ```
 
@@ -29,8 +30,14 @@ src/
 - Comment non-obvious state and event handling; avoid comments that merely restate syntax.
 - Keep keyboard access, visible focus states, and reduced-motion support.
 - Never publish private school, identity, or health records. Add only public-safe documents.
-- The terminal is a visual mock-up and does not execute commands.
-- Theme preferences currently last for the current page session. Local persistence can be added later.
+- The terminal is a simulated command prompt with a small allowlist (`help`, `date`, `apps`, `whoami`, `theme`, `open <app>`, and `clear`); it does not execute shell or operating-system commands.
+- Theme, wallpaper, and accent preferences persist locally in this browser; they can be exported/imported using a validated, versioned JSON file.
+
+## Quality checks
+
+- `npm test` runs dependency-free Node.js tests for preference import validation.
+- GitHub Actions runs the test suite and production build on pull requests and pushes to `main`.
+- A successful build does not replace manual keyboard, assistive-technology, browser, and mobile testing.
 
 ## Suggested next milestones
 

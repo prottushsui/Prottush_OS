@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { apps, projectLinks } from './apps.js';
+import { createPreferencesExport, parsePreferencesFile } from './preferences.js';
 import { Search, Power, Minus, Square, X, ChevronRight, Sun, Moon, Folder, FileText, Globe, Mail, Monitor, Terminal as TerminalIcon, ShieldCheck, Upload, Download, Trash2, LockKeyhole, RefreshCw, LogOut, HardDrive, AlertTriangle, Plus, Settings2, Check, Bell as BellIcon } from 'lucide-react';
 
 const LAYOUT_STORAGE_KEY = 'prottush-os-layout-v1';
@@ -303,13 +304,78 @@ function ExplorerApp({ openApp }) {
 }
 
 function AppContent({ id, openApp, theme, setTheme, wallpaper, setWallpaper, accent, setAccent }) {
+  const [settingsMessage, setSettingsMessage] = useState('');
+  const [terminalInput, setTerminalInput] = useState('');
+  const [terminalHistory, setTerminalHistory] = useState([{ type: 'output', text: 'Welcome to Prottush OS Terminal (simulation). Type help to see supported commands.' }]);
+  const exportPreferences = () => {
+    try {
+      const payload = createPreferencesExport({ theme, wallpaper, accent });
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = 'prottush-os-settings.json';
+      anchor.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      setSettingsMessage('Appearance settings exported. This file contains only theme, wallpaper, and accent.');
+    } catch {
+      setSettingsMessage('Could not export settings in this browser.');
+    }
+  };
+  const runTerminalCommand = (event) => {
+    event.preventDefault();
+    const command = terminalInput.trim();
+    if (!command) return;
+    const [verb, ...args] = command.split(/\s+/);
+    const normalized = verb.toLowerCase();
+    let output = '';
+    if (normalized === 'help') output = 'Supported commands: help, date, apps, whoami, theme, open <app>, clear. No operating-system commands are executed.';
+    else if (normalized === 'date') output = new Date().toString();
+    else if (normalized === 'apps') output = apps.map(item => item.title).join(' · ');
+    else if (normalized === 'whoami') output = 'Portfolio visitor session';
+    else if (normalized === 'theme') output = 'Current appearance: ' + theme + '; wallpaper: ' + wallpaper + '; accent: ' + accent + '.';
+    else if (normalized === 'open') {
+      const requested = args.join(' ').toLowerCase();
+      const match = apps.find(item => item.id.toLowerCase() === requested || item.title.toLowerCase() === requested);
+      if (match) { openApp(match.id); output = 'Opening ' + match.title + ' in the portfolio desktop.'; }
+      else output = 'App not found. Run apps to see available app names.';
+    } else if (normalized === 'clear') {
+      setTerminalHistory([]);
+      setTerminalInput('');
+      return;
+    } else output = 'Unknown simulated command: ' + verb + '. Type help for supported commands.';
+    setTerminalHistory(current => [...current, { type: 'command', text: command }, { type: 'output', text: output }].slice(-80));
+    setTerminalInput('');
+  };
+  const importPreferences = async (event) => {
+    const input = event.currentTarget;
+    const file = input.files?.[0];
+    if (!file) return;
+    try {
+      const preferences = parsePreferencesFile(await file.text());
+      setTheme(preferences.theme);
+      setWallpaper(preferences.wallpaper);
+      setAccent(preferences.accent);
+      setSettingsMessage('Appearance settings imported. No app, window, or vault data was changed.');
+    } catch (error) {
+      setSettingsMessage(error instanceof Error ? error.message : 'Could not import this settings file.');
+    } finally {
+      input.value = '';
+    }
+  };
   if (id === 'vault') return <VaultApp/>;
+  if (id === 'help') return <section className="page help-page">
+    <div className="doc-head"><Monitor size={34}/><div><p className="eyebrow">QUICK START</p><h1>Help & tips</h1><p className="muted">A practical guide to this portfolio desktop.</p></div></div>
+    <section className="settings-section"><div className="settings-section-heading"><h2>Getting around</h2><span>01</span></div><div className="info-grid"><article><strong>Open an app</strong><p>Double-click a desktop icon, or use Start to search app names, descriptions, and categories. Press Enter to launch the highlighted result.</p></article><article><strong>Manage windows</strong><p>Use the title bar to move windows, the window controls to minimize or close, and drag a desktop window to the top or side edge to maximize or snap.</p></article><article><strong>Personalize</strong><p>Open Settings to change theme, wallpaper, and accent. Export only those appearance choices if you want to move them to another browser.</p><button className="settings-transfer-button" onClick={()=>openApp('settings')}><Settings2 size={14}/> Open Settings</button></article><article><strong>Keyboard help</strong><p>Press <kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd> for Start, <kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>E</kbd> for Explorer, or <kbd>?</kbd> for the shortcut panel.</p></article></div></section>
+    <section className="settings-section"><div className="settings-section-heading"><h2>Privacy and honest boundaries</h2><span>02</span></div><ul className="help-list"><li>Appearance preferences and desktop layout stay in this browser unless you explicitly export appearance settings.</li><li>Settings exports include only theme, wallpaper, and accent—not window layout, credentials, tokens, or Secret Space content.</li><li>The Terminal is a visual mock-up and does not execute operating-system commands.</li><li>Secret Space is a separate cloud-vault feature. Lock it when finished and never export or share its credentials.</li><li>External project links leave this portfolio and open the destination website.</li></ul></section>
+    <p className="callout">This is a portfolio interface inspired by a desktop operating system, not a full Windows emulator. Some familiar controls are visual simulations.</p>
+  </section>;
   if (id === 'about') return <section className="page about"><div className="profile-mark">P.</div><p className="eyebrow">USER PROFILE</p><h1>Hey, I’m Prottush.</h1><p className="muted">Student · Builder · Climate advocate</p><p className="about-intro">I like turning ideas into useful, thoughtful projects — from digital experiences to student-led initiatives. I’m especially interested in the intersection of technology, community, and positive change.</p><div className="info-grid"><article><strong>Community</strong><p>Secretary of Publicity at Cambrian Climate Club, contributing to climate awareness, student collaboration, and youth-led initiatives.</p></article><article><strong>What I explore</strong><p>Web development, product design, civic ideas, climate action, and ways technology can make complicated things easier to use.</p></article></div><h2 className="section-heading">A few things I’m building</h2><div className="info-grid project-summary"><article><strong>Prottush OS</strong><p>A Windows 11-inspired interactive portfolio designed as a desktop you can explore.</p><span className="project-tag">Web · UI</span></article><article><strong>ShasthoLink</strong><p>A healthcare SaaS showcase concept focused on a patient dashboard, medical timeline, and a clearer health journey.</p><span className="project-tag">Product concept</span></article><article><strong>Cambrian Climate Club</strong><p>A student-led climate community website supporting awareness, activities, and collaboration.</p><span className="project-tag">Community · Climate</span></article><article><strong>Climate Chronicles</strong><p>A digital magazine experience in progress, exploring how student climate stories and publications can be presented online.</p><span className="project-tag">Editorial · Web</span></article></div><p className="callout">This profile uses project and role details already available. Public contact details, personal documents, dates, and other identifying information can be added only when you choose what to share.</p></section>;
   if (id === 'explorer') return <ExplorerApp openApp={openApp}/>;
   if (id === 'browser') return <section className="browser"><div className="browser-bar"><span>←</span><span>→</span><div className="address">🔒　Your project speed dial</div></div><div className="browser-home"><div className="browser-logo">✳</div><h1>Where to next?</h1><p className="muted">A few places from around my digital world.</p><div className="link-grid">{projectLinks.map(p=><a className="project-link" href={p.url} target="_blank" rel="noreferrer" key={p.title}><span className="project-mark">{p.mark}</span><b>{p.title}</b><small>{p.description}</small><span className="external">↗</span></a>)}</div></div></section>;
   if (id === 'resume') return <section className="page"><div className="doc-head"><FileText size={34}/><div><p className="eyebrow">DOCUMENTS</p><h1>CV & records</h1><p className="muted">Public-safe documents will appear here.</p></div></div>{[{title:'Curriculum Vitae',desc:'Add your latest CV to public/documents and link it here.'},{title:'School records',desc:'Only include documents you intend to make public.'},{title:'Certificates & recognition',desc:'A curated list of achievements and certificates.'}].map(d=><div className="file-row" key={d.title}><FileText/><div><b>{d.title}</b><small>{d.desc}</small></div><span className="file-type">FILE</span></div>)}<p className="callout">No private student records should be published. Add only files you explicitly want visitors to access.</p></section>;
   if (id === 'contact') return <section className="page"><div className="contact-mark"><Mail/></div><p className="eyebrow">LET’S CONNECT</p><h1>Get in touch.</h1><p className="muted">For collaborations, projects, or a thoughtful conversation.</p><a className="contact-row" href="https://github.com/prottushsui" target="_blank" rel="noreferrer"><Globe/><span><b>GitHub</b><small>github.com/prottushsui</small></span><ChevronRight/></a><p className="callout">Add a public contact email or preferred social link when you are ready.</p></section>;
-  if (id === 'terminal') return <section className="terminal"><div><i/> <i/> <i/> <span>PowerShell</span></div><p>Windows PowerShell</p><p>Copyright (C) Microsoft Corporation. All rights reserved.</p><br/><p>PS C:\Users\Prottush&gt; <span className="terminal-caret">_</span></p><p className="terminal-muted">This is a visual portfolio terminal, not a real shell.</p></section>;
+  if (id === 'terminal') return <section className="terminal terminal-interactive"><div className="terminal-titlebar"><i/> <i/> <i/> <span>Prottush OS — Simulated Terminal</span></div><div className="terminal-body" aria-label="Terminal output" aria-live="polite">{terminalHistory.map((item,index)=><p key={index} className={item.type==='command'?'terminal-command':'terminal-output'}>{item.type==='command'?'PS portfolio> ':''}{item.text}</p>)}</div><form className="terminal-prompt" onSubmit={runTerminalCommand}><label htmlFor="terminal-command-input">PS portfolio&gt;</label><input id="terminal-command-input" value={terminalInput} onChange={event=>setTerminalInput(event.target.value)} autoComplete="off" spellCheck="false" aria-label="Simulated terminal command" placeholder="type help" /><button type="submit">Run</button></form><p className="terminal-muted">Simulation only. Commands are allowlisted; no shell, filesystem, network, or operating-system commands are executed.</p></section>;
   if (id === 'settings') return <section className="page settings-page">
     <div className="doc-head"><Monitor size={34}/><div><p className="eyebrow">SYSTEM</p><h1>Personalization</h1><p className="muted">Make this desktop feel like yours.</p></div></div>
     <section className="settings-section" aria-labelledby="appearance-heading"><div className="settings-section-heading"><h2 id="appearance-heading">Appearance</h2><span>01</span></div><p className="muted">Choose a light or dark window and taskbar treatment.</p><div className="theme-row"><button className={theme==='light'?'theme-choice selected':'theme-choice'} aria-pressed={theme==='light'} onClick={()=>setTheme('light')}><Sun size={18}/>Light</button><button className={theme==='dark'?'theme-choice selected':'theme-choice'} aria-pressed={theme==='dark'} onClick={()=>setTheme('dark')}><Moon size={18}/>Dark</button></div></section>
@@ -319,7 +385,8 @@ function AppContent({ id, openApp, theme, setTheme, wallpaper, setWallpaper, acc
     <section className="settings-section" aria-labelledby="accent-heading"><div className="settings-section-heading"><h2 id="accent-heading">Accent colour</h2><span>03</span></div><p className="muted">Use a subtle highlight for active apps and selected controls.</p><div className="accent-options" role="group" aria-label="Accent colour">
       {[{id:'blue',name:'Blue',value:'#176bd2'},{id:'violet',name:'Violet',value:'#7955d9'},{id:'teal',name:'Teal',value:'#128779'},{id:'rose',name:'Rose',value:'#cc4f78'},{id:'amber',name:'Amber',value:'#b77916'}].map(option=><button key={option.id} className={'accent-option '+(accent===option.id?'selected':'')} aria-label={option.name+' accent'} aria-pressed={accent===option.id} title={option.name} onClick={()=>setAccent(option.id)} style={{'--swatch':option.value}}><span/></button>)}
     </div></section>
-    <p className="callout settings-note">Your theme, wallpaper, and accent are saved locally in this browser only. They do not change Secret Space or upload anything to the cloud.</p>
+    <section className="settings-section" aria-labelledby="settings-transfer-heading"><div className="settings-section-heading"><h2 id="settings-transfer-heading">Backup appearance settings</h2><span>04</span></div><p className="muted">Move your visual preferences to another browser using a small JSON file. Only theme, wallpaper, and accent are included.</p><div className="settings-transfer"><button type="button" className="settings-transfer-button" onClick={exportPreferences}><Download size={15}/> Export settings</button><label className="settings-transfer-button"><Upload size={15}/> Import settings<input type="file" accept="application/json,.json" onChange={importPreferences}/></label><button type="button" className="settings-transfer-button quiet" onClick={()=>{setTheme('light');setWallpaper('default');setAccent('blue');setSettingsMessage('Appearance settings reset to defaults.')}}>Reset appearance</button></div>{settingsMessage&&<p className="settings-message" role="status">{settingsMessage}</p>}</section>
+    <p className="callout settings-note">Your theme, wallpaper, and accent are saved locally in this browser only. Export files contain only those three validated preferences. Secret Space, credentials, tokens, window layout, and app contents are never included.</p>
   </section>;
   return null;
 }
@@ -581,7 +648,7 @@ export default function App() {
   const visible = useMemo(()=>Object.entries(windows).filter(([,w])=>!w.minimized),[windows]);
   const query = search.trim().toLowerCase();
   const searchResults = apps.filter(a => [a.title, a.subtitle, a.group].some(value => value.toLowerCase().includes(query)));
-  const pinnedIds = ['about','explorer','browser','resume','settings','contact'];
+  const pinnedIds = ['about','explorer','browser','resume','settings','contact','help'];
   const displayedApps = query ? searchResults : showAllApps ? apps : apps.filter(a => pinnedIds.includes(a.id));
   const launchHighlightedApp = () => {
     const selected = displayedApps[Math.max(0, Math.min(highlightedApp, displayedApps.length - 1))];
