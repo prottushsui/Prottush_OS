@@ -305,6 +305,8 @@ function ExplorerApp({ openApp }) {
 
 function AppContent({ id, openApp, theme, setTheme, wallpaper, setWallpaper, accent, setAccent }) {
   const [settingsMessage, setSettingsMessage] = useState('');
+  const [terminalInput, setTerminalInput] = useState('');
+  const [terminalHistory, setTerminalHistory] = useState([{ type: 'output', text: 'Welcome to Prottush OS Terminal (simulation). Type help to see supported commands.' }]);
   const exportPreferences = () => {
     try {
       const payload = createPreferencesExport({ theme, wallpaper, accent });
@@ -319,6 +321,31 @@ function AppContent({ id, openApp, theme, setTheme, wallpaper, setWallpaper, acc
     } catch {
       setSettingsMessage('Could not export settings in this browser.');
     }
+  };
+  const runTerminalCommand = (event) => {
+    event.preventDefault();
+    const command = terminalInput.trim();
+    if (!command) return;
+    const [verb, ...args] = command.split(/\\s+/);
+    const normalized = verb.toLowerCase();
+    let output = '';
+    if (normalized === 'help') output = 'Supported commands: help, date, apps, whoami, theme, open <app>, clear. No operating-system commands are executed.';
+    else if (normalized === 'date') output = new Date().toString();
+    else if (normalized === 'apps') output = apps.map(item => item.title).join(' · ');
+    else if (normalized === 'whoami') output = 'Portfolio visitor session';
+    else if (normalized === 'theme') output = 'Current appearance: ' + theme + '; wallpaper: ' + wallpaper + '; accent: ' + accent + '.';
+    else if (normalized === 'open') {
+      const requested = args.join(' ').toLowerCase();
+      const match = apps.find(item => item.id.toLowerCase() === requested || item.title.toLowerCase() === requested);
+      if (match) { openApp(match.id); output = 'Opening ' + match.title + ' in the portfolio desktop.'; }
+      else output = 'App not found. Run apps to see available app names.';
+    } else if (normalized === 'clear') {
+      setTerminalHistory([]);
+      setTerminalInput('');
+      return;
+    } else output = 'Unknown simulated command: ' + verb + '. Type help for supported commands.';
+    setTerminalHistory(current => [...current, { type: 'command', text: command }, { type: 'output', text: output }].slice(-80));
+    setTerminalInput('');
   };
   const importPreferences = async (event) => {
     const input = event.currentTarget;
@@ -348,7 +375,7 @@ function AppContent({ id, openApp, theme, setTheme, wallpaper, setWallpaper, acc
   if (id === 'browser') return <section className="browser"><div className="browser-bar"><span>←</span><span>→</span><div className="address">🔒　Your project speed dial</div></div><div className="browser-home"><div className="browser-logo">✳</div><h1>Where to next?</h1><p className="muted">A few places from around my digital world.</p><div className="link-grid">{projectLinks.map(p=><a className="project-link" href={p.url} target="_blank" rel="noreferrer" key={p.title}><span className="project-mark">{p.mark}</span><b>{p.title}</b><small>{p.description}</small><span className="external">↗</span></a>)}</div></div></section>;
   if (id === 'resume') return <section className="page"><div className="doc-head"><FileText size={34}/><div><p className="eyebrow">DOCUMENTS</p><h1>CV & records</h1><p className="muted">Public-safe documents will appear here.</p></div></div>{[{title:'Curriculum Vitae',desc:'Add your latest CV to public/documents and link it here.'},{title:'School records',desc:'Only include documents you intend to make public.'},{title:'Certificates & recognition',desc:'A curated list of achievements and certificates.'}].map(d=><div className="file-row" key={d.title}><FileText/><div><b>{d.title}</b><small>{d.desc}</small></div><span className="file-type">FILE</span></div>)}<p className="callout">No private student records should be published. Add only files you explicitly want visitors to access.</p></section>;
   if (id === 'contact') return <section className="page"><div className="contact-mark"><Mail/></div><p className="eyebrow">LET’S CONNECT</p><h1>Get in touch.</h1><p className="muted">For collaborations, projects, or a thoughtful conversation.</p><a className="contact-row" href="https://github.com/prottushsui" target="_blank" rel="noreferrer"><Globe/><span><b>GitHub</b><small>github.com/prottushsui</small></span><ChevronRight/></a><p className="callout">Add a public contact email or preferred social link when you are ready.</p></section>;
-  if (id === 'terminal') return <section className="terminal"><div><i/> <i/> <i/> <span>PowerShell</span></div><p>Windows PowerShell</p><p>Copyright (C) Microsoft Corporation. All rights reserved.</p><br/><p>PS C:\Users\Prottush&gt; <span className="terminal-caret">_</span></p><p className="terminal-muted">This is a visual portfolio terminal, not a real shell.</p></section>;
+  if (id === 'terminal') return <section className="terminal terminal-interactive"><div className="terminal-titlebar"><i/> <i/> <i/> <span>Prottush OS — Simulated Terminal</span></div><div className="terminal-body" aria-label="Terminal output" aria-live="polite">{terminalHistory.map((item,index)=><p key={index} className={item.type==='command'?'terminal-command':'terminal-output'}>{item.type==='command'?'PS portfolio> ':''}{item.text}</p>)}</div><form className="terminal-prompt" onSubmit={runTerminalCommand}><label htmlFor="terminal-command-input">PS portfolio&gt;</label><input id="terminal-command-input" value={terminalInput} onChange={event=>setTerminalInput(event.target.value)} autoComplete="off" spellCheck="false" aria-label="Simulated terminal command" placeholder="type help" /><button type="submit">Run</button></form><p className="terminal-muted">Simulation only. Commands are allowlisted; no shell, filesystem, network, or operating-system commands are executed.</p></section>;
   if (id === 'settings') return <section className="page settings-page">
     <div className="doc-head"><Monitor size={34}/><div><p className="eyebrow">SYSTEM</p><h1>Personalization</h1><p className="muted">Make this desktop feel like yours.</p></div></div>
     <section className="settings-section" aria-labelledby="appearance-heading"><div className="settings-section-heading"><h2 id="appearance-heading">Appearance</h2><span>01</span></div><p className="muted">Choose a light or dark window and taskbar treatment.</p><div className="theme-row"><button className={theme==='light'?'theme-choice selected':'theme-choice'} aria-pressed={theme==='light'} onClick={()=>setTheme('light')}><Sun size={18}/>Light</button><button className={theme==='dark'?'theme-choice selected':'theme-choice'} aria-pressed={theme==='dark'} onClick={()=>setTheme('dark')}><Moon size={18}/>Dark</button></div></section>
