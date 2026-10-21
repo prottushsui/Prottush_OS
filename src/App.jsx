@@ -326,6 +326,23 @@ export default function App() {
   const filtered = apps.filter(a=>a.title.toLowerCase().includes(search.toLowerCase()));
   useEffect(() => {
     const key = (event) => {
+      const targetElement = event.target instanceof HTMLElement ? event.target : null;
+      const isEditing = Boolean(targetElement && (
+        targetElement.matches('input, textarea, select, [contenteditable="true"]') ||
+        targetElement.isContentEditable
+      ));
+
+      // Escape should always dismiss Start, including while its search field is focused.
+      if (event.key === 'Escape' && startOpen) {
+        event.preventDefault();
+        setStartOpen(false);
+        return;
+      }
+
+      // Do not steal typing shortcuts from text fields or editable app content.
+      // Alt+F4 remains available as a conventional window-close shortcut.
+      if (isEditing && !(event.altKey && event.key === 'F4')) return;
+
       const shortcut = event.altKey && event.shiftKey && !event.ctrlKey && !event.metaKey;
       if (shortcut && !event.repeat) {
         const shortcuts = { s: 'start', e: 'explorer', b: 'browser', t: 'terminal' };
@@ -337,10 +354,7 @@ export default function App() {
           return;
         }
       }
-      if (event.key === 'Escape') {
-        if (startOpen) setStartOpen(false);
-        else if (activeId) closeApp(activeId);
-      }
+      if (event.key === 'Escape' && activeId) closeApp(activeId);
       if (event.altKey && event.key === 'F4' && activeId) {
         event.preventDefault();
         closeApp(activeId);
