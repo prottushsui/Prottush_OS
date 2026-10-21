@@ -414,7 +414,7 @@ export default function App() {
   const [shortcutIds,setShortcutIds] = useState(() => {
     try {
       const saved = JSON.parse(localStorage.getItem('prottush-os-desktop-shortcuts') || '[]');
-      return Array.isArray(saved) ? [...new Set(saved.filter(id => apps.some(item => item.id === id && id !== 'vault'))] : [];
+      return Array.isArray(saved) ? [...new Set(saved.filter(id => apps.some(item => item.id === id) && id !== 'vault'))] : [];
     } catch { return []; }
   });
   // Keep appearance preferences across reloads without making storage mandatory.
@@ -483,9 +483,12 @@ export default function App() {
     event.stopPropagation();
     const menuWidth = 228;
     const menuHeight = targetId ? 174 : 250;
+    const bounds = event.currentTarget?.getBoundingClientRect?.();
+    const pointerX = Number.isFinite(event.clientX) && event.clientX > 0 ? event.clientX : (bounds ? bounds.left + Math.min(bounds.width / 2, 90) : 16);
+    const pointerY = Number.isFinite(event.clientY) && event.clientY > 0 ? event.clientY : (bounds ? bounds.top + Math.min(bounds.height / 2, 40) : 16);
     setContextMenu({
-      x: Math.max(8, Math.min(event.clientX, window.innerWidth - menuWidth - 8)),
-      y: Math.max(8, Math.min(event.clientY, window.innerHeight - menuHeight - 66)),
+      x: Math.max(8, Math.min(pointerX, window.innerWidth - menuWidth - 8)),
+      y: Math.max(8, Math.min(pointerY, window.innerHeight - menuHeight - 66)),
       targetId,
     });
     setShortcutPickerOpen(false);
@@ -594,7 +597,7 @@ export default function App() {
     window.addEventListener('keydown', key);
     return () => window.removeEventListener('keydown', key);
   }, [activeId, startOpen, z, contextMenu]);
-  return <main className={'desktop theme-'+theme+' wallpaper-'+wallpaper} style={{'--accent':accentColors[accent] || accentColors.blue}} onContextMenu={event=>showContextMenu(event)} onPointerDown={e=>{if(e.target===e.currentTarget){setStartOpen(false);setSelectedDesktopIcon(null);closeContextMenu();}}}>
+  return <main className={'desktop theme-'+theme+' wallpaper-'+wallpaper} style={{'--accent':accentColors[accent] || accentColors.blue}} onContextMenu={event=>{if(!event.target.closest('.window,.taskbar,.start-menu,.desktop-context-menu'))showContextMenu(event);}} onPointerDown={e=>{if(e.target===e.currentTarget){setStartOpen(false);setSelectedDesktopIcon(null);closeContextMenu();}}}>
     <div className="wallpaper-shape shape-one"/><div className="wallpaper-shape shape-two"/>
     <div className="desktop-icons" onContextMenu={event=>{if(event.target===event.currentTarget)showContextMenu(event);}}>{[...apps.filter(a=>['about','explorer','browser','resume','contact','vault'].includes(a.id)),...apps.filter(a=>shortcutIds.includes(a.id)&&!['about','explorer','browser','resume','contact','vault'].includes(a.id))].map(a=>{const Icon=a.icon;return <button className={'desktop-icon '+(selectedDesktopIcon===a.id?'desktop-icon-selected':'')} key={a.id} onClick={()=>setSelectedDesktopIcon(a.id)} onDoubleClick={()=>openApp(a.id)} onContextMenu={event=>showContextMenu(event,a.id)} onKeyDown={event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();openApp(a.id);}if(event.key==='ContextMenu'||(event.shiftKey&&event.key==='F10'))showContextMenu(event,a.id);}} aria-label={"Open "+a.title} aria-pressed={selectedDesktopIcon===a.id}><span className={'icon-tile icon-'+a.id}><Icon size={25}/></span><span>{a.title}</span></button>})}</div>
     <div className="welcome"><span>PERSONAL DESKTOP</span><h1>Good to see you.</h1><p>Double-click an icon to explore. Right-click for options.</p></div>
