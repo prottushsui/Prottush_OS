@@ -381,7 +381,7 @@ function WindowFrame({ app, state, active, onFocus, onClose, onMinimize, onMaxim
       ...(Number.isFinite(state.height) ? { height: state.height } : {}),
     }),
   };
-  return <section className={windowClass} style={frameStyle} onPointerDown={onFocus} role="dialog" aria-label={app.title} aria-modal="false" aria-hidden={!active}>
+  return <section className={windowClass} style={frameStyle} onPointerDown={onFocus} role="group" aria-label={app.title}>
     <header className="titlebar" onPointerDown={drag} onDoubleClick={event => { if (!event.target.closest("button")) onMaximize(); }}><span className="title-icon"><Icon size={15}/></span><span>{app.title}</span><div className="window-controls"><button aria-label="Minimize" onClick={onMinimize}><Minus size={14}/></button><button aria-label={state.maximized?'Restore':'Maximize'} onClick={onMaximize}><Square size={11}/></button><button className="close" aria-label={"Close "+app.title} onClick={onClose}><X size={15}/></button></div></header>
     <div className="window-content">{children}</div>
     {!state.maximized && !state.snap && window.innerWidth >= 720 && <div className="resize-handles" aria-hidden="true">
