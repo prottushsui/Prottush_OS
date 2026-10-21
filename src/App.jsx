@@ -17,6 +17,8 @@ function readSavedWindows() {
       const rawZ = Number(state.zIndex);
       return [[id, {
         position: { x, y },
+        width: state.width != null && Number.isFinite(Number(state.width)) ? Math.max(300, Math.min(window.innerWidth - x, Number(state.width))) : null,
+        height: state.height != null && Number.isFinite(Number(state.height)) ? Math.max(230, Math.min(window.innerHeight - y - 70, Number(state.height))) : null,
         maximized: Boolean(state.maximized),
         minimized: Boolean(state.minimized),
         zIndex: Number.isFinite(rawZ) ? Math.max(1, Math.min(10000, rawZ)) : 10,
@@ -246,7 +248,7 @@ function AppContent({ id, openApp, theme, setTheme }) {
   return null;
 }
 
-function WindowFrame({ app, state, active, onFocus, onClose, onMinimize, onMaximize, onMove, onDragStart, onSnap, children }) {
+function WindowFrame({ app, state, active, onFocus, onClose, onMinimize, onMaximize, onMove, onResize, onDragStart, onSnap, children }) {
   const Icon = app.icon;
   const drag = (event) => {
     if (event.target.closest('button') || event.button !== 0) return;
@@ -268,10 +270,57 @@ function WindowFrame({ app, state, active, onFocus, onClose, onMinimize, onMaxim
     window.addEventListener('pointermove', move);
     window.addEventListener('pointerup', up);
   };
+  const beginResize = (event, direction) => {
+    if (event.button !== 0 || state.maximized || state.snap || window.innerWidth < 720) return;
+    event.preventDefault();
+    event.stopPropagation();
+    onFocus();
+    const rect = event.currentTarget.closest('.window').getBoundingClientRect();
+    const origin = { x: event.clientX, y: event.clientY, left: rect.left, top: rect.top, width: rect.width, height: rect.height };
+    const move = (e) => {
+      const dx = e.clientX - origin.x;
+      const dy = e.clientY - origin.y;
+      let left = origin.left;
+      let top = origin.top;
+      let width = origin.width;
+      let height = origin.height;
+      if (direction.includes('e')) width = origin.width + dx;
+      if (direction.includes('s')) height = origin.height + dy;
+      if (direction.includes('w')) { width = origin.width - dx; left = origin.left + dx; }
+      if (direction.includes('n')) { height = origin.height - dy; top = origin.top + dy; }
+      width = Math.max(300, Math.min(window.innerWidth - left, width));
+      height = Math.max(230, Math.min(window.innerHeight - 70 - top, height));
+      if (direction.includes('w')) left = origin.left + origin.width - width;
+      if (direction.includes('n')) top = origin.top + origin.height - height;
+      left = Math.max(0, Math.min(window.innerWidth - 300, left));
+      top = Math.max(0, Math.min(window.innerHeight - 110, top));
+      onResize({ position: { x: left, y: top }, width, height });
+    };
+    const cleanup = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', cleanup);
+      window.removeEventListener('pointercancel', cleanup);
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', cleanup);
+    window.addEventListener('pointercancel', cleanup);
+  };
   const windowClass = 'window '+(active?'active ':'')+(state.maximized?'maximized ':'')+(state.snap ? 'snapped-'+state.snap : '');
-  return <section className={windowClass} style={{left:state.maximized?12:state.position.x,top:state.maximized?12:state.position.y,zIndex:state.zIndex}} onPointerDown={onFocus}>
+  const frameStyle = {
+    left: state.maximized ? 12 : state.position.x,
+    top: state.maximized ? 12 : state.position.y,
+    zIndex: state.zIndex,
+    ...(state.maximized || state.snap ? {} : {
+      ...(Number.isFinite(state.width) ? { width: state.width } : {}),
+      ...(Number.isFinite(state.height) ? { height: state.height } : {}),
+    }),
+  };
+  return <section className={windowClass} style={frameStyle} onPointerDown={onFocus}>
     <header className="titlebar" onPointerDown={drag} onDoubleClick={event => { if (!event.target.closest("button")) onMaximize(); }}><span className="title-icon"><Icon size={15}/></span><span>{app.title}</span><div className="window-controls"><button aria-label="Minimize" onClick={onMinimize}><Minus size={14}/></button><button aria-label={state.maximized?'Restore':'Maximize'} onClick={onMaximize}><Square size={11}/></button><button className="close" aria-label="Close" onClick={onClose}><X size={15}/></button></div></header>
     <div className="window-content">{children}</div>
+    {!state.maximized && !state.snap && window.innerWidth >= 720 && <div className="resize-handles" aria-hidden="true">
+      {['n','e','s','w','ne','nw','se','sw'].map(direction => <div key={direction} className={'resize-handle resize-'+direction} onPointerDown={event => beginResize(event, direction)} />)}
+    </div>}
   </section>;
 }
 
@@ -296,6 +345,8 @@ export default function App() {
     try {
       const layout = Object.fromEntries(Object.entries(windows).map(([id, state]) => [id, {
         position: state.position,
+        width: Number.isFinite(state.width) ? state.width : null,
+        height: Number.isFinite(state.height) ? state.height : null,
         maximized: Boolean(state.maximized),
         minimized: Boolean(state.minimized),
         zIndex: state.zIndex,
@@ -316,12 +367,39 @@ export default function App() {
     setActiveId(id); setStartOpen(false); setSearch('');
   };
   const focusApp = (id) => { const nextZ=z+1; setZ(nextZ); setWindows(current=>({...current,[id]:{...current[id],minimized:false,zIndex:nextZ}})); setActiveId(id); };
-  const closeApp = (id) => { setWindows(current=>{const copy={...current};delete copy[id];return copy;});setActiveId(current=>current===id?null:current); };
-  const minimizeApp = (id) => { setWindows(current=>({...current,[id]:{...current[id],minimized:true}}));setActiveId(current=>current===id?null:current); };
-  const toggleMaximize = (id) => setWindows(current=>({...current,[id]:{...current[id],maximized:!current[id].maximized,snap:null}}));
-  const moveWindow = (id,position) => setWindows(current=>({...current,[id]:{...current[id],position}}));
-  const startWindowDrag = (id) => setWindows(current=>({...current,[id]:{...current[id],maximized:false,snap:null}}));
-  const snapWindow = (id,side) => setWindows(current=>({...current,[id]:{...current[id],maximized:false,snap:side}}));
+  const selectTopWindow = (candidates) => {
+    const next = Object.entries(candidates)
+      .filter(([, state]) => !state.minimized)
+      .sort((a, b) => (b[1].zIndex || 0) - (a[1].zIndex || 0))[0];
+    setActiveId(next?.[0] ?? null);
+  };
+  const closeApp = (id) => {
+    const copy = { ...windows };
+    delete copy[id];
+    setWindows(copy);
+    if (activeId === id) selectTopWindow(copy);
+  };
+  const minimizeApp = (id) => {
+    const copy = { ...windows, [id]: { ...windows[id], minimized: true } };
+    setWindows(copy);
+    if (activeId === id) selectTopWindow(copy);
+  };
+  const toggleMaximize = (id) => setWindows(current => ({
+    ...current,
+    [id]: { ...current[id], maximized: !current[id].maximized, snap: null }
+  }));
+  const moveWindow = (id, position) => setWindows(current => ({
+    ...current, [id]: { ...current[id], position }
+  }));
+  const resizeWindow = (id, geometry) => setWindows(current => ({
+    ...current, [id]: { ...current[id], ...geometry, maximized: false, snap: null }
+  }));
+  const startWindowDrag = (id) => setWindows(current => ({
+    ...current, [id]: { ...current[id], maximized: false, snap: null }
+  }));
+  const snapWindow = (id, side) => setWindows(current => ({
+    ...current, [id]: { ...current[id], maximized: false, snap: side }
+  }));
   const visible = useMemo(()=>Object.entries(windows).filter(([,w])=>!w.minimized),[windows]);
   const filtered = apps.filter(a=>a.title.toLowerCase().includes(search.toLowerCase()));
   useEffect(() => {
@@ -367,7 +445,7 @@ export default function App() {
     <div className="wallpaper-shape shape-one"/><div className="wallpaper-shape shape-two"/>
     <div className="desktop-icons">{apps.filter(a=>['about','explorer','browser','resume','contact','vault'].includes(a.id)).map(a=>{const Icon=a.icon;return <button className="desktop-icon" key={a.id} onDoubleClick={()=>openApp(a.id)}><span className={'icon-tile icon-'+a.id}><Icon size={25}/></span><span>{a.title}</span></button>})}</div>
     <div className="welcome"><span>PERSONAL DESKTOP</span><h1>Good to see you.</h1><p>Double-click an icon to explore.</p></div>
-    {visible.map(([id,state])=>{const app=apps.find(a=>a.id===id);return <WindowFrame key={id} app={app} state={state} active={activeId===id} onFocus={()=>focusApp(id)} onClose={()=>closeApp(id)} onMinimize={()=>minimizeApp(id)} onMaximize={()=>toggleMaximize(id)} onMove={pos=>moveWindow(id,pos)} onDragStart={()=>startWindowDrag(id)} onSnap={side=>snapWindow(id,side)}><AppContent id={id} openApp={openApp} theme={theme} setTheme={setTheme}/></WindowFrame>})}
+    {visible.map(([id,state])=>{const app=apps.find(a=>a.id===id);return <WindowFrame key={id} app={app} state={state} active={activeId===id} onFocus={()=>focusApp(id)} onClose={()=>closeApp(id)} onMinimize={()=>minimizeApp(id)} onMaximize={()=>toggleMaximize(id)} onMove={pos=>moveWindow(id,pos)} onResize={geometry=>resizeWindow(id,geometry)} onDragStart={()=>startWindowDrag(id)} onSnap={side=>snapWindow(id,side)}><AppContent id={id} openApp={openApp} theme={theme} setTheme={setTheme}/></WindowFrame>})}
     {startOpen&&<><button className="dismiss" aria-label="Dismiss Start menu" onClick={()=>setStartOpen(false)}/><section className="start-menu"><label className="start-search"><Search size={16}/><input autoFocus value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search for apps, settings, and documents"/></label><div className="start-heading"><b>{search?'Search results':'Pinned'}</b><span>All apps　›</span></div><div className="start-grid">{filtered.map(a=>{const Icon=a.icon;return <button key={a.id} onClick={()=>openApp(a.id)}><span className={'icon-tile icon-'+a.id}><Icon size={22}/></span><small>{a.title}</small></button>})}</div><footer><span className="profile-mini">P.</span><b>Prottush</b><button aria-label="Power menu" onClick={()=>setStartOpen(false)}><Power size={16}/></button></footer></section></>}
     <footer className="taskbar"><div className="weather"><span>☀</span><div><b>Clear skies</b><small>Make today count</small></div></div><div className="taskbar-center"><button className="task-icon windows-logo" aria-label="Start" onClick={()=>setStartOpen(v=>!v)}><span>▦</span></button>{[...new Set([...Object.keys(windows)])].map(id=>{const a=apps.find(app=>app.id===id);const Icon=a.icon;return <button key={id} className={'task-icon '+(activeId===id?'task-active':'')} title={a.title} onClick={()=>windows[id].minimized?openApp(id):activeId===id?minimizeApp(id):focusApp(id)}><Icon size={19}/></button>})}<button className="task-icon" title="Search" onClick={()=>setStartOpen(true)}><Search size={18}/></button></div><div className="system-tray"><span>⌃</span><span>◖</span><span>◕</span><time>{clock.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</time><time>{clock.toLocaleDateString([], {month:'numeric',day:'numeric',year:'numeric'})}</time></div></footer>
   </main>;
