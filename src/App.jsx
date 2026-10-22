@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { apps, projectLinks } from './apps.js';
 import { createPreferencesExport, parsePreferencesFile } from './preferences.js';
-import { Search, Power, Minus, Square, X, ChevronRight, Sun, Moon, Folder, FileText, Globe, Mail, Monitor, Terminal as TerminalIcon, ShieldCheck, Upload, Download, Trash2, LockKeyhole, RefreshCw, LogOut, HardDrive, AlertTriangle, Plus, Settings2, Check, Bell as BellIcon } from 'lucide-react';
+import { Search, Power, Minus, Square, X, ChevronRight, Sun, Moon, Folder, FileText, Globe, Mail, Monitor, Terminal as TerminalIcon, ShieldCheck, Upload, Download, Trash2, LockKeyhole, RefreshCw, LogOut, HardDrive, AlertTriangle, Plus, Settings2, Check, Bell as BellIcon, BookOpen } from 'lucide-react';
 
 const LAYOUT_STORAGE_KEY = 'prottush-os-layout-v1';
 
