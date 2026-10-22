@@ -17,7 +17,8 @@ npm run test:e2e
 ## Public portfolio content
 
 - The About app presents a public-safe profile and selected Cambrian Climate Club credits.
-- The Climate Chronicles app embeds and links to the club's original 2025–2026 magazine PDF; the CCC repository and publication are left intact.
+- The profile portrait is bundled with this repository, so the About app no longer depends on the club website to load the image.
+- The Climate Chronicles app provides a reader, cover, and links for the 2025–2026 magazine. The PDF remains served from the Cambrian Climate Club's published site as the authoritative original.
 - The profile deliberately excludes student ID, class/campus details, private contact information, and personal records.
 
 ## Project map
