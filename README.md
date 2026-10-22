@@ -14,6 +14,12 @@ npm run build
 npm run test:e2e
 ```
 
+## Public portfolio content
+
+- The About app presents a public-safe profile and selected Cambrian Climate Club credits.
+- The Climate Chronicles app embeds and links to the club's original 2025–2026 magazine PDF; the CCC repository and publication are left intact.
+- The profile deliberately excludes student ID, class/campus details, private contact information, and personal records.
+
 ## Project map
 
 ```text
