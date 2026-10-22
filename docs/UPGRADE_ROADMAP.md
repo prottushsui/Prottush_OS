@@ -212,3 +212,11 @@ The first implementation batch establishes foundations and ships selected low-ri
 - [ ] Review external project links and production logs with evidence before declaring them verified.
 
 This is a partial implementation of upgrades 21–50, not a claim that all thirty upgrades are finished. Keep the remaining checklist open until each item is implemented and verified.
+
+
+## Public profile and magazine integration
+
+- [x] Add a public-safe profile using the portrait and public-facing credits already published on the Cambrian Climate Club site.
+- [x] Exclude student ID, class/campus details, private contact information, and personal records from the portfolio profile.
+- [x] Add a dedicated Climate Chronicles desktop app with an embedded PDF and open/download links to the original 2025–2026 issue.
+- [ ] Verify the external portrait, magazine PDF, and cover image load in production browsers; the portfolio depends on the CCC site's public asset URLs.
