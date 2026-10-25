@@ -8,7 +8,7 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          const normalizedId = id.replace(/\\\\/g, '/');
+          const normalizedId = id.replaceAll(String.fromCharCode(92), '/');
           if (normalizedId.includes('/node_modules/lucide-react/')) return 'icons-vendor';
           if (
             normalizedId.includes('/node_modules/react/') ||
